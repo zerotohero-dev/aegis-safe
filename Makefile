@@ -6,7 +6,7 @@
 #     .\_/.
 #
 
-VERSION=0.7.0
+VERSION=0.7.3
 PACKAGE=aegis-safe
 REPO=z2hdev/aegis-safe
 
