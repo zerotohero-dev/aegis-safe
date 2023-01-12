@@ -24,22 +24,20 @@ func main() {
 	defer cancel()
 
 	source, err := workloadapi.NewX509Source(
-		ctx, workloadapi.WithClientOptions(workloadapi.WithAddr(env.SpiffeSocketUrl())),
+		ctx, workloadapi.WithClientOptions(
+			workloadapi.WithAddr(env.SpiffeSocketUrl()),
+		),
 	)
 
 	if err != nil {
 		log.Fatalf("Unable to fetch X.509 Bundle: %v", err)
 	}
 
-	defer func(source *workloadapi.X509Source) {
-		if source == nil {
-			return
-		}
-		err := source.Close()
-		if err != nil {
+	defer func() {
+		if err := source.Close(); err != nil {
 			log.Printf("Problem closing SVID Bundle source: %v\n", err)
 		}
-	}(source)
+	}()
 
 	validation.EnsureSelfSPIFFEID(source)
 	log.Println("Acquired identity.")

@@ -31,7 +31,9 @@ func Serve(source *workloadapi.X509Source) {
 			return nil
 		}
 
-		return errors.New("TLS Config: I don’t know you, and it’s crazy '" + id.String() + "'")
+		return errors.New(
+			"TLS Config: I don’t know you, and it’s crazy '" + id.String() + "'",
+		)
 	})
 
 	tlsConfig := tlsconfig.MTLSServerConfig(source, source, authorizer)

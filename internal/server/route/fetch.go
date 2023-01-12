@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
-	"github.com/zerotohero-dev/aegis/core/entity/reqres/v1"
+	reqres "github.com/zerotohero-dev/aegis/core/entity/reqres/v1"
 	"github.com/zerotohero-dev/aegis/core/validation"
 	"io"
 	"log"
@@ -21,10 +21,7 @@ import (
 )
 
 func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
-	if r == nil {
-		return
-	}
-
+	// Only workloads can fetch.
 	if !validation.IsWorkload(svid) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
@@ -44,18 +41,14 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 		return
 	}
 
-	defer func(b io.ReadCloser) {
-		if b == nil {
-			return
-		}
-		err := b.Close()
+	defer func() {
+		err := r.Body.Close()
 		if err != nil {
 			log.Println("Problem closing body")
 		}
-	}(r.Body)
+	}()
 
-	var sr v1.SecretFetchRequest
-
+	var sr reqres.SecretFetchRequest
 	err = json.Unmarshal(body, &sr)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -80,7 +73,7 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 	workloadId := parts[0]
 	value := state.ReadSecret(workloadId)
 
-	sfr := v1.SecretFetchResponse{
+	sfr := reqres.SecretFetchResponse{
 		Data: value,
 	}
 

@@ -11,7 +11,7 @@ package route
 import (
 	"encoding/json"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
-	"github.com/zerotohero-dev/aegis/core/entity/reqres/v1"
+	reqres "github.com/zerotohero-dev/aegis/core/entity/reqres/v1"
 	"github.com/zerotohero-dev/aegis/core/validation"
 	"io"
 	"log"
@@ -51,8 +51,7 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		}
 	}(r.Body)
 
-	var sr v1.SecretUpsertRequest
-
+	var sr reqres.SecretUpsertRequest
 	err = json.Unmarshal(body, &sr)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

@@ -9,6 +9,8 @@
 package handle
 
 import (
+	"github.com/pkg/errors"
+	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	"github.com/spiffe/go-spiffe/v2/svid/x509svid"
 	"github.com/zerotohero-dev/aegis-safe/internal/server/route"
 	"io"
@@ -16,35 +18,47 @@ import (
 	"net/http"
 )
 
+func getSpiffeId(r *http.Request) (*spiffeid.ID, error) {
+	tlsConnectionState := r.TLS
+	if len(tlsConnectionState.PeerCertificates) == 0 {
+		return nil, errors.New("no peer certs")
+	}
+
+	id, err := x509svid.IDFromCert(tlsConnectionState.PeerCertificates[0])
+	if err != nil {
+		return nil, errors.Wrap(err, "problem extracting svid")
+	}
+
+	return &id, nil
+}
+
 func InitializeRoutes() {
-	// Set up a `/` resource handler
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r == nil {
-			return
-		}
-
-		tlsConnectionState := r.TLS
-		if len(tlsConnectionState.PeerCertificates) == 0 {
-			log.Println("no peer certs. exiting.")
-			return
-		}
-
-		id, err := x509svid.IDFromCert(tlsConnectionState.PeerCertificates[0])
+		id, err := getSpiffeId(r)
 		if err != nil {
-			log.Println("problem extracting svid. exiting.")
-			return
+			// Block insecure connection attempt.
+			_, err = io.WriteString(w, "")
+			if err != nil {
+				log.Println("Problem writing response")
+				return
+			}
 		}
 
 		sid := id.String()
 		p := r.URL.Path
 
-		// sidecar -> safe : fetch secrets
+		// Route to fetch secrets.
+		// Only an Aegis-nominated workload is allowed to
+		// call this API endpoint. Calling it from anywhere else will
+		// error out.
 		if r.Method == http.MethodPost && p == "/v1/fetch" {
 			route.Fetch(w, r, sid)
 			return
 		}
 
-		// sentinel -> safe : put secrets
+		// Route to add secrets to Aegis Safe.
+		// Only Aegis Sentinel is allowed to call this API endpoint.
+		// Calling it from anywhere else will error out.
 		if r.Method == http.MethodPost && p == "/v1/secret" {
 			route.Secret(w, r, sid)
 			return
