@@ -13,6 +13,7 @@ import (
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
+	"github.com/zerotohero-dev/aegis-core/probe"
 	"github.com/zerotohero-dev/aegis-core/validation"
 	"github.com/zerotohero-dev/aegis-safe/internal/server/handle"
 	"log"
@@ -41,6 +42,8 @@ func Serve(source *workloadapi.X509Source) {
 		Addr:      ":8443",
 		TLSConfig: tlsConfig,
 	}
+
+	go probe.CreateReadiness()
 
 	if err := server.ListenAndServeTLS("", ""); err != nil {
 		log.Fatalf("Error on serve: %v", err)

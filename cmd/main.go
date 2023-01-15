@@ -10,15 +10,27 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"github.com/zerotohero-dev/aegis-core/env"
+	"github.com/zerotohero-dev/aegis-core/probe"
 	"github.com/zerotohero-dev/aegis-safe/internal/server"
 	"github.com/zerotohero-dev/aegis-safe/internal/validation"
 	"log"
+	"net/http"
 )
 
+func ok(w http.ResponseWriter, req *http.Request) {
+	_, err := fmt.Fprintf(w, "OK")
+	if err != nil {
+		log.Printf("probe response failure: %s", err.Error())
+		return
+	}
+}
 func main() {
 	log.Println("Acquiring identity…")
+
+	go probe.CreateLiveness()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
