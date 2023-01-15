@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"github.com/zerotohero-dev/aegis-core/env"
+	"github.com/zerotohero-dev/aegis-core/probe"
 	"github.com/zerotohero-dev/aegis-safe/internal/server"
 	"github.com/zerotohero-dev/aegis-safe/internal/validation"
 	"log"
@@ -19,6 +20,8 @@ import (
 
 func main() {
 	log.Println("Acquiring identity…")
+
+	go probe.CreateLiveness()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
