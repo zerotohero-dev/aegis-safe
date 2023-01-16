@@ -67,6 +67,11 @@ spec:
         # will listen to. Defaults to `:8082`
         - name: AEGIS_PROBE_READINESS_PORT
           value: ":8082"
+        # AEGIS_SAFE_SVID_RETRIEVAL_TIMEOUT is how long (in seconds) Aegis Safe
+        # will wait (in seconds) for an SPIRE SVID before giving up and crashing.
+        # The default value is 30 seconds.
+        - name: AEGIS_SAFE_SVID_RETRIEVAL_TIMEOUT
+          value: "30"
         livenessProbe:
           httpGet:
             path: /
