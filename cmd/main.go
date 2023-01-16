@@ -16,10 +16,26 @@ import (
 	"github.com/zerotohero-dev/aegis-safe/internal/server"
 	"github.com/zerotohero-dev/aegis-safe/internal/validation"
 	"log"
+	"time"
 )
 
 func main() {
 	log.Println("Acquiring identity…")
+
+	timedOut := make(chan bool, 1)
+	acquired := make(chan bool, 1)
+	go func() {
+		time.Sleep(env.SafeSvidRetrievalTimeout())
+		timedOut <- true
+	}()
+	go func() {
+		select {
+		case <-acquired:
+			log.Println("Acquired identity.")
+		case <-timedOut:
+			panic("Failed to acquire an identity in a timely manner.")
+		}
+	}()
 
 	go probe.CreateLiveness()
 
@@ -43,7 +59,7 @@ func main() {
 	}()
 
 	validation.EnsureSelfSPIFFEID(source)
-	log.Println("Acquired identity.")
+	acquired <- true
 
 	server.Serve(source)
 }
