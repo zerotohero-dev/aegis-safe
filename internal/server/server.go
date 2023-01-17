@@ -13,19 +13,22 @@ import (
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
+	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/probe"
 	"github.com/zerotohero-dev/aegis-core/validation"
+	"github.com/zerotohero-dev/aegis-safe/internal/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/server/handle"
-	"log"
 	"net/http"
 )
 
 func Serve(source *workloadapi.X509Source) {
 	if source == nil {
-		log.Fatalf("Got nil source while trying to serve")
+		log.FatalLn("Serve: Got nil source while trying to serve")
 	}
 
+	log.DebugLn("Serve: Initializing routes")
 	handle.InitializeRoutes()
+	log.DebugLn("Server: Initialized routes")
 
 	authorizer := tlsconfig.AdaptMatcher(func(id spiffeid.ID) error {
 		if validation.IsWorkload(id.String()) {
@@ -39,13 +42,15 @@ func Serve(source *workloadapi.X509Source) {
 
 	tlsConfig := tlsconfig.MTLSServerConfig(source, source, authorizer)
 	server := &http.Server{
-		Addr:      ":8443",
+		Addr:      env.SafeTlsPort(),
 		TLSConfig: tlsConfig,
 	}
 
+	log.DebugLn("Serve: creating readiness probe")
 	go probe.CreateReadiness()
+	log.DebugLn("Serve: created readiness probe")
 
 	if err := server.ListenAndServeTLS("", ""); err != nil {
-		log.Fatalf("Error on serve: %v", err)
+		log.FatalLn("Error on serve: %v", err.Error())
 	}
 }

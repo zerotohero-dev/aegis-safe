@@ -12,9 +12,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	"github.com/spiffe/go-spiffe/v2/svid/x509svid"
+	"github.com/zerotohero-dev/aegis-safe/internal/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/server/route"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -36,10 +36,12 @@ func InitializeRoutes() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		id, err := getSpiffeId(r)
 		if err != nil {
+			log.WarnLn("Handler: blocking insecure svid", id, err)
+
 			// Block insecure connection attempt.
 			_, err = io.WriteString(w, "")
 			if err != nil {
-				log.Println("Problem writing response")
+				log.InfoLn("Problem writing response:", err.Error())
 				return
 			}
 		}
@@ -47,11 +49,14 @@ func InitializeRoutes() {
 		sid := id.String()
 		p := r.URL.Path
 
+		log.DebugLn("Handler: got svid:", sid, "path", p, "method", r.Method)
+
 		// Route to fetch secrets.
 		// Only an Aegis-nominated workload is allowed to
 		// call this API endpoint. Calling it from anywhere else will
 		// error out.
 		if r.Method == http.MethodPost && p == "/v1/fetch" {
+			log.DebugLn("Handler: will fetch")
 			route.Fetch(w, r, sid)
 			return
 		}
@@ -60,14 +65,17 @@ func InitializeRoutes() {
 		// Only Aegis Sentinel is allowed to call this API endpoint.
 		// Calling it from anywhere else will error out.
 		if r.Method == http.MethodPost && p == "/v1/secret" {
+			log.DebugLn("Handler: will secret")
 			route.Secret(w, r, sid)
 			return
 		}
 
+		log.DebugLn("Handler: route mismatch")
+
 		w.WriteHeader(http.StatusBadRequest)
 		_, err = io.WriteString(w, "")
 		if err != nil {
-			log.Println("Problem writing response")
+			log.WarnLn("Problem writing response")
 			return
 		}
 	})

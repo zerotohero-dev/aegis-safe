@@ -72,6 +72,12 @@ spec:
         # The default value is 30 seconds.
         - name: AEGIS_SAFE_SVID_RETRIEVAL_TIMEOUT
           value: "30"
+        # AEGIS_SAFE_TLS_PORT is the port that Safe serves its API endpoints.
+        # Defaults to ":8443"
+        - name: AEGIS_SAFE_TLS_PORT
+          value: ":8443"
+        # These probe values should match the associated
+        # environment variables above.
         livenessProbe:
           httpGet:
             path: /
