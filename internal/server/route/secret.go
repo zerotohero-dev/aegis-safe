@@ -10,11 +10,11 @@ package route
 
 import (
 	"encoding/json"
+	"github.com/zerotohero-dev/aegis-safe/internal/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
 	reqres "github.com/zerotohero-dev/aegis/core/entity/reqres/v1"
 	"github.com/zerotohero-dev/aegis/core/validation"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -27,17 +27,19 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.Println("Problem sending response")
+			log.InfoLn("Problem sending response")
 		}
 		return
 	}
+
+	log.DebugLn("Secret: sentinel svid:", svid)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.Println("Problem sending response")
+			log.InfoLn("Secret: Problem sending response")
 		}
 		return
 	}
@@ -47,9 +49,11 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		}
 		err := b.Close()
 		if err != nil {
-			log.Println("Problem closing body")
+			log.InfoLn("Secret: Problem closing body")
 		}
 	}(r.Body)
+
+	log.DebugLn("Secret: Parsed request body")
 
 	var sr reqres.SecretUpsertRequest
 	err = json.Unmarshal(body, &sr)
@@ -57,7 +61,7 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.Println("Problem sending response")
+			log.InfoLn("Secret: Problem sending response")
 		}
 		return
 	}
@@ -65,10 +69,12 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 	workloadId := sr.WorkloadId
 	value := sr.Value
 
+	log.DebugLn("Secret:Upsert: workloadId:", workloadId)
 	state.UpsertSecret(workloadId, value)
+	log.DebugLn("Secret:UpsertEnd: workloadId", workloadId)
 
 	_, err = io.WriteString(w, "OK")
 	if err != nil {
-		log.Println("Problem sending response")
+		log.InfoLn("Secret: Problem sending response")
 	}
 }

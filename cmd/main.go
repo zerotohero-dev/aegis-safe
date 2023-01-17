@@ -13,14 +13,14 @@ import (
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/probe"
+	"github.com/zerotohero-dev/aegis-safe/internal/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/server"
 	"github.com/zerotohero-dev/aegis-safe/internal/validation"
-	"log"
 	"time"
 )
 
 func main() {
-	log.Println("Acquiring identity…")
+	log.InfoLn("Acquiring identity…")
 
 	timedOut := make(chan bool, 1)
 	acquired := make(chan bool, 1)
@@ -31,9 +31,9 @@ func main() {
 	go func() {
 		select {
 		case <-acquired:
-			log.Println("Acquired identity.")
+			log.InfoLn("Acquired identity.")
 		case <-timedOut:
-			panic("Failed to acquire an identity in a timely manner.")
+			log.FatalLn("Failed to acquire an identity in a timely manner.")
 		}
 	}()
 
@@ -49,12 +49,12 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatalf("Unable to fetch X.509 Bundle: %v", err)
+		log.FatalLn("Unable to fetch X.509 Bundle: %v", err)
 	}
 
 	defer func() {
 		if err := source.Close(); err != nil {
-			log.Printf("Problem closing SVID Bundle source: %v\n", err)
+			log.InfoLn("Problem closing SVID Bundle source: %v\n", err)
 		}
 	}()
 
