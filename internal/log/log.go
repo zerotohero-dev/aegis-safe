@@ -15,6 +15,7 @@ import (
 
 type Level int
 
+const Off Level = 1
 const Error Level = 2
 const Warn Level = 3
 const Info Level = 4
@@ -27,7 +28,7 @@ var mux sync.Mutex
 func SetLevel(l Level) {
 	mux.Lock()
 	defer mux.Unlock()
-	if l < 2 || l > 6 {
+	if l < Off || l > Trace {
 		return
 	}
 	currentLevel = l
@@ -45,7 +46,7 @@ func FatalLn(v ...any) {
 
 func ErrorLn(v ...any) {
 	l := GetLevel()
-	if l > Error {
+	if l < Error {
 		return
 	}
 	log.Println(v...)
@@ -53,7 +54,7 @@ func ErrorLn(v ...any) {
 
 func WarnLn(v ...any) {
 	l := GetLevel()
-	if l > Warn {
+	if l < Warn {
 		return
 	}
 	log.Println(v...)
@@ -61,7 +62,7 @@ func WarnLn(v ...any) {
 
 func InfoLn(v ...any) {
 	l := GetLevel()
-	if l > Info {
+	if l < Info {
 		return
 	}
 	log.Println(v...)
@@ -69,7 +70,7 @@ func InfoLn(v ...any) {
 
 func DebugLn(v ...any) {
 	l := GetLevel()
-	if l > Debug {
+	if l < Debug {
 		return
 	}
 	log.Println(v...)
@@ -77,7 +78,7 @@ func DebugLn(v ...any) {
 
 func TraceLn(v ...any) {
 	l := GetLevel()
-	if l > Trace {
+	if l < Trace {
 		return
 	}
 	log.Println(v...)
