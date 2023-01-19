@@ -10,8 +10,10 @@ package state
 
 import (
 	"encoding/json"
+	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
 	"github.com/zerotohero-dev/aegis-safe/internal/log"
 	"sync"
+	"time"
 )
 
 // This is where all the secrets are stored.
@@ -32,23 +34,32 @@ func evaluate(data string) *AegisInternalCommand {
 	return &command
 }
 
-func UpsertSecret(id, data string) {
-	if id == selfName {
-		cmd := evaluate(data)
+func UpsertSecret(secret entity.SecretStored) {
+	if secret.Name == selfName {
+		cmd := evaluate(secret.Value)
 		if cmd != nil {
 			newLogLevel := cmd.LogLevel
 			log.InfoLn("Setting new level to:", newLogLevel)
 			log.SetLevel(log.Level(newLogLevel))
 		}
 	}
-	secrets.Store(id, data)
+
+	_, exists := secrets.Load(secret.Name)
+	now := time.Now()
+	if !exists {
+		secret.Created = now
+	}
+	secret.Updated = now
+
+	secrets.Store(secret.Name, secret)
 }
 
-func ReadSecret(key string) string {
+func ReadSecret(key string) *entity.SecretStored {
 	result, ok := secrets.Load(key)
 	if !ok {
-		return ""
+		return nil
 	}
 
-	return result.(string)
+	s := result.(entity.SecretStored)
+	return &s
 }
