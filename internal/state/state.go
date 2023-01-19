@@ -44,13 +44,19 @@ func UpsertSecret(secret entity.SecretStored) {
 		}
 	}
 
-	_, exists := secrets.Load(secret.Name)
+	s, exists := secrets.Load(secret.Name)
 	now := time.Now()
-	if !exists {
+	if exists {
+		ss := s.(entity.SecretStored)
+		secret.Created = ss.Created
+	} else {
 		secret.Created = now
 	}
 	secret.Updated = now
 
+	log.InfoLn("UpsertSecret:",
+		"created", secret.Created, "updated", secret.Updated, "name", secret.Name,
+	)
 	secrets.Store(secret.Name, secret)
 }
 
