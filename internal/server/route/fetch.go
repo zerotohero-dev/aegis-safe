@@ -10,7 +10,7 @@ package route
 
 import (
 	"encoding/json"
-	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
+	"fmt"
 	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-safe/internal/log"
@@ -19,6 +19,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
@@ -101,8 +102,8 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	sfr := reqres.SecretFetchResponse{
 		Data:    secret.Value,
-		Created: entity.JsonTime(secret.Created),
-		Updated: entity.JsonTime(secret.Updated),
+		Created: fmt.Sprintf("\"%s\"", secret.Created.Format(time.RubyDate)),
+		Updated: fmt.Sprintf("\"%s\"", secret.Updated.Format(time.RubyDate)),
 	}
 
 	resp, err := json.Marshal(sfr)
