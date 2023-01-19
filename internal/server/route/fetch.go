@@ -87,7 +87,7 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 	workloadId := parts[0]
 	secret := state.ReadSecret(workloadId)
 
-	// If secret does not exist, send and empty response.
+	// If secret does not exist, send an empty response.
 	if secret == nil {
 		w.WriteHeader(http.StatusNotFound)
 		_, err := io.WriteString(w, "")
