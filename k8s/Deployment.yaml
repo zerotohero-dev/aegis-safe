@@ -34,6 +34,10 @@ spec:
         - name: spire-agent-socket
           mountPath: /spire-agent-socket
           readOnly: true
+        - name: aegis-data
+          mountPath: /data
+        - name: aegis-age
+          mountPath: /keys
         env:
         # SPIFFE_ENDPOINT_SOCKET is required for Sentinel to talk to SPIRE.
         # If not provided, it will default to "unix:///spire-agent-socket/agent.sock"
@@ -54,6 +58,14 @@ spec:
         # "spiffe://aegis.z2h.dev/workload/aegis-safe/ns/aegis-system/sa/aegis-safe/n/"
         - name: AEGIS_SAFE_SVID_PREFIX
           value: spiffe://aegis.z2h.dev/workload/aegis-safe/ns/aegis-system/sa/aegis-safe/n/
+        # AEGIS_SAFE_DATA_PATH is where the encrypted secrets are stored.
+        # If not given, defaults to "/data"
+        - name: AEGIS_SAFE_DATA_PATH
+          value: /data
+        # AEGIS_SAFE_AGE_KEY_PATH is where Aegis Safe will fetch the "key.txt"
+        # that contains the encryption keys.
+        - name: AEGIS_SAFE_AGE_KEY_PATH
+          value: /key
         # AEGIS_SAFE_ENDPOINT_URL is the REST API endpoint that Safe exposes from its
         # Service. if not provided, it will default to:
         # "https://aegis-safe.aegis-system.svc.cluster.local:8443/"
@@ -111,3 +123,34 @@ spec:
         csi:
           driver: "csi.spiffe.io"
           readOnly: true
+      #
+      # aegis-data is the volume where the encrypted backups of the secrets
+      # will be stored, make sure that it is durable, performant, and reliable.
+      #
+      # !!! CAUTION !!!
+      # HostPath volumes present many security risks, and it is a best practice
+      # to avoid using it for production deployments. For production setups,
+      # you are strongly encouraged to choose a persistent volume that suits
+      # your needs.
+      # ref: https://kubernetes.io/docs/concepts/storage/volumes/
+      #
+      - name: aegis-data
+        hostPath:
+          path: /var/local/aegis/data
+          type: DirectoryOrCreate
+      #
+      # aegis-age stores the encryption keys to restore secrets from aegis-data.
+      # For maximum security, make sure that this is an `emptyDir` with `medium`
+      # set to "Memory". This way, the decryption keys will never be persisted
+      # on the file system and are protected by the memory protection mechanisms
+      # of the operating system.
+      #
+      # Using an in-memory volume is the recommended best practice for storing
+      # sensitive data. An alternative approach is storing the secrets in the
+      # container’s environment variables; however, that could leak to the log
+      # aggregators when the pod crashes and the process dumps the contents
+      # of the memory to the logs as a diagnostic stack trace.
+      #
+      - name: aegis-age
+        emptyDir:
+          medium: "Memory"
