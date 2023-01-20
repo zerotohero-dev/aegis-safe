@@ -9,6 +9,7 @@
 package log
 
 import (
+	"github.com/zerotohero-dev/aegis-core/env"
 	"log"
 	"sync"
 )
@@ -22,7 +23,7 @@ const Info Level = 4
 const Debug Level = 5
 const Trace Level = 6
 
-var currentLevel = Warn
+var currentLevel = Level(env.SafeLogLevel())
 var mux sync.Mutex
 
 func SetLevel(l Level) {

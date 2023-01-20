@@ -6,7 +6,7 @@
 #     .\_/.
 #
 
-VERSION=0.9.3
+VERSION=0.9.18
 PACKAGE=aegis-safe
 REPO=z2hdev/aegis-safe
 
@@ -16,7 +16,7 @@ build:
 	go build -o ${PACKAGE} ./cmd/main.go
 
 run:
-	go run ./cmd/main.go
+	./hack/run.sh
 
 bundle:
 	go mod vendor
@@ -28,11 +28,7 @@ push:
 	docker push ${REPO}:${VERSION}
 
 deploy:
-	kubectl apply -f ./k8s/Namespace.yaml
-	kubectl apply -f ./k8s/ServiceAccount.yaml
-	kubectl apply -f ./k8s/Identity.yaml
-	kubectl apply -f ./k8s/Deployment.yaml
-	kubectl apply -f ./k8s/Service.yaml
+	./hack/deploy.sh
 
 run-in-container:
 	docker run ${PACKAGE}:${VERSION}

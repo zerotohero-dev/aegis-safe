@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #
 # .-'_.---._'-.
 # ||####|(__)||   Protect your secrets, protect your business.
@@ -6,9 +8,4 @@
 #     .\_/.
 #
 
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: aegis-safe
-  namespace: aegis-system
-automountServiceAccountToken: true
+go run ./cmd/main.go

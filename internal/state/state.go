@@ -25,6 +25,15 @@ type AegisInternalCommand struct {
 	LogLevel int `json:"logLevel"`
 }
 
+var ageKey = ""
+var lock sync.Mutex
+
+func SetAgeKey(k string) {
+	lock.Lock()
+	defer lock.Unlock()
+	ageKey = k
+}
+
 func evaluate(data string) *AegisInternalCommand {
 	var command AegisInternalCommand
 	err := json.Unmarshal([]byte(data), &command)
@@ -58,12 +67,19 @@ func UpsertSecret(secret entity.SecretStored) {
 		"created", secret.Created, "updated", secret.Updated, "name", secret.Name,
 	)
 	secrets.Store(secret.Name, secret)
+	go persist(secret)
 }
 
 func ReadSecret(key string) *entity.SecretStored {
 	result, ok := secrets.Load(key)
 	if !ok {
-		return nil
+		stored := readFromDisk(key)
+		if stored == nil {
+			return nil
+		}
+		go persist(*stored)
+		secrets.Store(stored.Name, *stored)
+		return stored
 	}
 
 	s := result.(entity.SecretStored)
