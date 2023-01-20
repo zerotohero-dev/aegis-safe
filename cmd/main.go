@@ -20,7 +20,8 @@ func main() {
 	log.InfoLn("Acquiring identity…")
 
 	timedOut := make(chan bool, 1)
-	// TODO: wait for these two channels before firing the readiness probe.
+	// These channels mus complete in a timely manner, otherwise
+	// the timeOut will be fired and will crash the app.
 	acquiredSvid := make(chan bool, 1)
 	updatedSecret := make(chan bool, 1)
 	serverStarted := make(chan bool, 1)
@@ -31,6 +32,7 @@ func main() {
 	go bootstrap.CreateCryptoKey(updatedSecret)
 	go bootstrap.Monitor(acquiredSvid, updatedSecret, serverStarted, timedOut)
 
+	// App is alive; however, not yet ready to accept connections.
 	go probe.CreateLiveness()
 
 	ctx, cancel := context.WithCancel(context.Background())
