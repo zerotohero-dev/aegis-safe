@@ -23,12 +23,13 @@ func main() {
 	// TODO: wait for these two channels before firing the readiness probe.
 	acquiredSvid := make(chan bool, 1)
 	updatedSecret := make(chan bool, 1)
+	serverStarted := make(chan bool, 1)
 
 	log.InfoLn(updatedSecret)
 
 	go bootstrap.NotifyTimeout(timedOut)
-	go bootstrap.CreateCryptoKey()
-	go bootstrap.Monitor(acquiredSvid, updatedSecret, timedOut)
+	go bootstrap.CreateCryptoKey(updatedSecret)
+	go bootstrap.Monitor(acquiredSvid, updatedSecret, serverStarted, timedOut)
 
 	go probe.CreateLiveness()
 
@@ -42,5 +43,5 @@ func main() {
 		}
 	}()
 
-	server.Serve(source)
+	server.Serve(source, serverStarted)
 }

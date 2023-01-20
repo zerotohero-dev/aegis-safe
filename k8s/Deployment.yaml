@@ -27,7 +27,7 @@ spec:
       serviceAccountName: aegis-safe
       containers:
       - name: main
-        image: z2hdev/aegis-safe:0.9.8
+        image: z2hdev/aegis-safe:0.9.15
         ports:
         - containerPort: 8443
         volumeMounts:
@@ -37,7 +37,7 @@ spec:
         - name: aegis-data
           mountPath: /data
         - name: aegis-age
-          mountPath: /keys
+          mountPath: /key
           readOnly: true
         env:
         # SPIFFE_ENDPOINT_SOCKET is required for Sentinel to talk to SPIRE.
@@ -69,9 +69,10 @@ spec:
         - name: AEGIS_SAFE_DATA_PATH
           value: /data
         # AEGIS_SAFE_AGE_KEY_PATH is where Aegis Safe will fetch the "key.txt"
-        # that contains the encryption keys.
+        # that contains the encryption keys. If not given, will default to
+        # "/key/key.txt"
         - name: AEGIS_SAFE_AGE_KEY_PATH
-          value: /key
+          value: /key/key.txt
         # AEGIS_SAFE_ENDPOINT_URL is the REST API endpoint that Safe exposes from its
         # Service. if not provided, it will default to:
         # "https://aegis-safe.aegis-system.svc.cluster.local:8443/"

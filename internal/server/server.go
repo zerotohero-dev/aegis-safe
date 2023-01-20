@@ -21,7 +21,7 @@ import (
 	"net/http"
 )
 
-func Serve(source *workloadapi.X509Source) {
+func Serve(source *workloadapi.X509Source, serverStarted chan<- bool) {
 	if source == nil {
 		log.FatalLn("Serve: Got nil source while trying to serve")
 	}
@@ -46,6 +46,7 @@ func Serve(source *workloadapi.X509Source) {
 		TLSConfig: tlsConfig,
 	}
 
+	serverStarted <- true
 	log.DebugLn("Serve: creating readiness probe")
 	go probe.CreateReadiness()
 	log.DebugLn("Serve: created readiness probe")
