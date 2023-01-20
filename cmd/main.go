@@ -16,21 +16,68 @@ import (
 	"github.com/zerotohero-dev/aegis-safe/internal/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/server"
 	"github.com/zerotohero-dev/aegis-safe/internal/validation"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"time"
 )
+
+func osman() {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		log.FatalLn("Error creating client config: %v", err.Error())
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.FatalLn("Error creating client: %v", err.Error())
+	}
+
+	log.InfoLn(clientset)
+
+	// Update the Secret
+	//secret := []byte("new-secret-data")
+	//secretName := "my-secret"
+	//_, err = clientset.CoreV1().Secrets("default").Update(&v1.Secret{
+	//	ObjectMeta: metav1.ObjectMeta{
+	//		Name: secretName,
+	//	},
+	//	Data: map[string][]byte{
+	//		"data": secret,
+	//	},
+	//})
+	//if err != nil {
+	//	log.Fatalf("Error updating secret: %v", err)
+	//}
+}
 
 func main() {
 	log.InfoLn("Acquiring identity…")
 
 	timedOut := make(chan bool, 1)
-	acquired := make(chan bool, 1)
+	acquiredSvid := make(chan bool, 1)
+	updatedSecret := make(chan bool, 1)
+
+	log.InfoLn(updatedSecret)
+
+	go func() {
+		// TODO:
+		// 1. check the mounted volume to see if there is a key there
+		// 2. if yes, store it in memory, if no proceed to the slower path
+		// 3. create a new age key
+		// 4. save the age key to memory.
+		// 5. update the secret to save the key into it.
+		// 6. notify that this step is done, and we can proceed to the next step
+		// of bootstrapping.
+		osman()
+	}()
+
 	go func() {
 		time.Sleep(env.SafeSvidRetrievalTimeout())
 		timedOut <- true
 	}()
 	go func() {
 		select {
-		case <-acquired:
+		case <-acquiredSvid:
 			log.InfoLn("Acquired identity.")
 		case <-timedOut:
 			log.FatalLn("Failed to acquire an identity in a timely manner.")
@@ -59,7 +106,7 @@ func main() {
 	}()
 
 	validation.EnsureSelfSPIFFEID(source)
-	acquired <- true
+	acquiredSvid <- true
 
 	server.Serve(source)
 }
