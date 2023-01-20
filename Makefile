@@ -6,14 +6,14 @@
 #     .\_/.
 #
 
-VERSION=0.9.15
+VERSION=0.9.18
 PACKAGE=aegis-safe
 REPO=z2hdev/aegis-safe
 
 all: build bundle push deploy
 
 build:
-	./hack/build.sh
+	go build -o ${PACKAGE} ./cmd/main.go
 
 run:
 	./hack/run.sh
