@@ -27,7 +27,7 @@ spec:
       serviceAccountName: aegis-safe
       containers:
       - name: main
-        image: z2hdev/aegis-safe:0.9.3
+        image: z2hdev/aegis-safe:0.9.8
         ports:
         - containerPort: 8443
         volumeMounts:
@@ -38,11 +38,17 @@ spec:
           mountPath: /data
         - name: aegis-age
           mountPath: /keys
+          readOnly: true
         env:
         # SPIFFE_ENDPOINT_SOCKET is required for Sentinel to talk to SPIRE.
         # If not provided, it will default to "unix:///spire-agent-socket/agent.sock"
         - name: SPIFFE_ENDPOINT_SOCKET
           value: unix:///spire-agent-socket/agent.sock
+        # AEGIS_SAFE_LOG_LEVEL determines the verbosity of the logs.
+        # 1: logs are off, 6: highest verbosity.
+        # Off = 1, Error = 2, Warn = 3, Info = 4, Debug = 5, Trace = 6
+        - name: AEGIS_SAFE_LOG_LEVEL
+          value: "6"
         # AEGIS_WORKLOAD_SVID_PREFIX is required for validation.
         # If not provided, it will default to:
         # "spiffe://aegis.z2h.dev/workload/"
@@ -138,19 +144,15 @@ spec:
         hostPath:
           path: /var/local/aegis/data
           type: DirectoryOrCreate
-      #
       # aegis-age stores the encryption keys to restore secrets from aegis-data.
-      # For maximum security, make sure that this is an `emptyDir` with `medium`
-      # set to "Memory". This way, the decryption keys will never be persisted
-      # on the file system and are protected by the memory protection mechanisms
-      # of the operating system.
-      #
       # Using an in-memory volume is the recommended best practice for storing
       # sensitive data. An alternative approach is storing the secrets in the
       # container’s environment variables; however, that could leak to the log
       # aggregators when the pod crashes and the process dumps the contents
       # of the memory to the logs as a diagnostic stack trace.
-      #
       - name: aegis-age
-        emptyDir:
-          medium: "Memory"
+        secret:
+          secretName: safe-age-key
+          items:
+          - key: KEY_TXT
+            path: key.txt

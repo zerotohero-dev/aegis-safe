@@ -13,9 +13,11 @@ import (
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-safe/internal/log"
+	"github.com/zerotohero-dev/aegis-safe/internal/state"
 	"github.com/zerotohero-dev/aegis-safe/internal/validation"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"os"
 	"time"
 )
 
@@ -49,12 +51,6 @@ func AcquireSource(ctx context.Context, acquiredSvid chan<- bool) *workloadapi.X
 	if err != nil {
 		log.FatalLn("Unable to fetch X.509 Bundle: %v", err)
 	}
-
-	defer func() {
-		if err := source.Close(); err != nil {
-			log.InfoLn("Problem closing SVID Bundle source: %v\n", err)
-		}
-	}()
 
 	validation.EnsureSelfSPIFFEID(source)
 	acquiredSvid <- true
@@ -92,6 +88,29 @@ func osman() {
 }
 
 func CreateCryptoKey() {
+	keyPath := env.SafeAgeKeyPath()
+
+	if _, err := os.Stat(keyPath); os.IsNotExist(err) {
+		log.FatalLn("CreateCryptoKey: Secret key not mounted")
+		return
+	}
+
+	data, err := os.ReadFile(keyPath)
+	if err != nil {
+		log.FatalLn("CreateCryptoKey: Error reading file:", err.Error())
+		return
+	}
+
+	secret := string(data)
+
+	if secret != "{}" {
+		log.InfoLn("Secret has been set in the cluster, will reuse it")
+		state.SetAgeKey(secret)
+		return
+	}
+
+	log.InfoLn("Secret has not been set yet")
+
 	// TODO:
 	// 1. check the mounted volume to see if there is a key there
 	// 2. if yes, store it in memory, if no proceed to the slower path

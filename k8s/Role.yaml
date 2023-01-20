@@ -16,7 +16,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
-    resourceNames: ["SafeAgeKey"]
+    resourceNames: ["safe-age-key"]
     verbs: ["get", "watch", "list", "update"]
 
 ---

@@ -20,6 +20,7 @@ func main() {
 	log.InfoLn("Acquiring identity…")
 
 	timedOut := make(chan bool, 1)
+	// TODO: wait for these two channels before firing the readiness probe.
 	acquiredSvid := make(chan bool, 1)
 	updatedSecret := make(chan bool, 1)
 
@@ -35,5 +36,11 @@ func main() {
 	defer cancel()
 
 	source := bootstrap.AcquireSource(ctx, acquiredSvid)
+	defer func() {
+		if err := source.Close(); err != nil {
+			log.InfoLn("Problem closing SVID Bundle source: %v\n", err)
+		}
+	}()
+
 	server.Serve(source)
 }
