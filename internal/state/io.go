@@ -63,10 +63,12 @@ func readFromDisk(key string) *entity.SecretStored {
 	r, err := age.Decrypt(f, identity)
 	if err != nil {
 		log.WarnLn("Failed to open encrypted file", err.Error())
+		return nil
 	}
 
 	if _, err := io.Copy(out, r); err != nil {
 		log.WarnLn("Failed to read encrypted file", err.Error())
+		return nil
 	}
 
 	contents := out.Bytes()
