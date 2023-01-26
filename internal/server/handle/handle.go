@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	"github.com/spiffe/go-spiffe/v2/svid/x509svid"
-	"github.com/zerotohero-dev/aegis-safe/internal/log"
+	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/server/route"
 	"io"
 	"net/http"

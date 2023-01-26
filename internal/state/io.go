@@ -14,7 +14,7 @@ import (
 	"filippo.io/age"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
-	"github.com/zerotohero-dev/aegis-safe/internal/log"
+	"github.com/zerotohero-dev/aegis-core/log"
 	"io"
 	"os"
 	"path"
