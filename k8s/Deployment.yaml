@@ -45,10 +45,10 @@ spec:
         - name: SPIFFE_ENDPOINT_SOCKET
           value: unix:///spire-agent-socket/agent.sock
         # AEGIS_SAFE_LOG_LEVEL determines the verbosity of the logs.
-        # 1: logs are off, 6: highest verbosity.
+        # 1: logs are off, 6: highest verbosity. default: 3
         # Off = 1, Error = 2, Warn = 3, Info = 4, Debug = 5, Trace = 6
         - name: AEGIS_SAFE_LOG_LEVEL
-          value: "6"
+          value: "3"
         # AEGIS_WORKLOAD_SVID_PREFIX is required for validation.
         # If not provided, it will default to:
         # "spiffe://aegis.z2h.dev/workload/"
