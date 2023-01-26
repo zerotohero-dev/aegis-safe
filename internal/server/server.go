@@ -14,9 +14,9 @@ import (
 	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"github.com/zerotohero-dev/aegis-core/env"
+	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-core/probe"
 	"github.com/zerotohero-dev/aegis-core/validation"
-	"github.com/zerotohero-dev/aegis-safe/internal/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/server/handle"
 	"net/http"
 )

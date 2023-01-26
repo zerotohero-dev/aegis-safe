@@ -11,7 +11,7 @@ package route
 import (
 	"encoding/json"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
-	"github.com/zerotohero-dev/aegis-safe/internal/log"
+	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
 	reqres "github.com/zerotohero-dev/aegis/core/entity/reqres/v1"
 	"github.com/zerotohero-dev/aegis/core/validation"

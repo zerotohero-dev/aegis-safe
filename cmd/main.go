@@ -10,9 +10,9 @@ package main
 
 import (
 	"context"
+	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-core/probe"
 	"github.com/zerotohero-dev/aegis-safe/internal/bootstrap"
-	"github.com/zerotohero-dev/aegis-safe/internal/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/server"
 )
 

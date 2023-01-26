@@ -10,7 +10,7 @@ package bootstrap
 
 import (
 	"context"
-	"github.com/zerotohero-dev/aegis-safe/internal/log"
+	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
 	v1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"

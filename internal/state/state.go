@@ -11,7 +11,7 @@ package state
 import (
 	"encoding/json"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
-	"github.com/zerotohero-dev/aegis-safe/internal/log"
+	"github.com/zerotohero-dev/aegis-core/log"
 	"sync"
 	"time"
 )
