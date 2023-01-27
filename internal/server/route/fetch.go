@@ -100,10 +100,12 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	log.DebugLn("Fetch: will send. workload id:", workloadId)
 
+	// RFC3339 is what Go uses internally when marshaling dates.
+	// Choosing it to be consistent.
 	sfr := reqres.SecretFetchResponse{
 		Data:    secret.Value,
-		Created: fmt.Sprintf("\"%s\"", secret.Created.Format(time.RubyDate)),
-		Updated: fmt.Sprintf("\"%s\"", secret.Updated.Format(time.RubyDate)),
+		Created: fmt.Sprintf("\"%s\"", secret.Created.Format(time.RFC3339)),
+		Updated: fmt.Sprintf("\"%s\"", secret.Updated.Format(time.RFC3339)),
 	}
 
 	resp, err := json.Marshal(sfr)
