@@ -66,7 +66,12 @@ func UpsertSecret(secret entity.SecretStored) {
 	log.InfoLn("UpsertSecret:",
 		"created", secret.Created, "updated", secret.Updated, "name", secret.Name,
 	)
-	secrets.Store(secret.Name, secret)
+
+	if secret.Value == "" {
+		secrets.Delete(secret.Name)
+	} else {
+		secrets.Store(secret.Name, secret)
+	}
 	go persist(secret)
 }
 

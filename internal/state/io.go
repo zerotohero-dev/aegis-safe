@@ -83,6 +83,16 @@ func readFromDisk(key string) *entity.SecretStored {
 }
 
 func persist(secret entity.SecretStored) {
+	// Resetting the value also removes the secret file from the disk.
+	if secret.Value == "" {
+		dataPath := path.Join(env.SafeDataPath(), secret.Name+".age")
+		err := os.Remove(dataPath)
+		if !os.IsNotExist(err) {
+			log.WarnLn("persist: failed to remove secret", err.Error())
+		}
+		return
+	}
+
 	data, err := json.Marshal(secret)
 	if err != nil {
 		log.WarnLn("persist: failed to marshal secret", err.Error())
@@ -92,7 +102,7 @@ func persist(secret entity.SecretStored) {
 	dataPath := path.Join(env.SafeDataPath(), secret.Name+".age")
 	file, err := os.Create(dataPath)
 	if err != nil {
-		log.WarnLn("persist: problem cerating file", err.Error())
+		log.WarnLn("persist: problem creating file", err.Error())
 		return
 	}
 	defer func() {
