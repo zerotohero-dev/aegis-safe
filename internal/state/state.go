@@ -62,6 +62,10 @@ func init() {
 	go handleSecrets()
 }
 
+type StoreType string
+
+var Persistent StoreType = "persistent"
+
 func UpsertSecret(secret entity.SecretStored) {
 	if secret.Name == selfName {
 		cmd := evaluate(secret.Value)
@@ -92,7 +96,10 @@ func UpsertSecret(secret entity.SecretStored) {
 		secrets.Store(secret.Name, secret)
 	}
 
-	secretQueue <- secret
+	store := env.SafeBackingStoreType()
+	if store == string(Persistent) {
+		secretQueue <- secret
+	}
 }
 
 func ReadSecret(key string) *entity.SecretStored {
