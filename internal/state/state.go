@@ -11,6 +11,7 @@ package state
 import (
 	"encoding/json"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
+	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
 	"sync"
 	"time"
@@ -43,6 +44,24 @@ func evaluate(data string) *AegisInternalCommand {
 	return &command
 }
 
+// These are persisted to files. They are buffered, so that they can
+// be written in the order they are queued and there are no concurrent
+// writes to the same file at a time. An alternative approach would be
+// to have a map of queues of `SecretsStored`s per file name but that
+// feels like an overkill.
+var secretQueue = make(chan entity.SecretStored, env.SafeSecretBufferSize())
+
+func handleSecrets() {
+	for {
+		secret := <-secretQueue
+		persist(secret)
+	}
+}
+
+func init() {
+	go handleSecrets()
+}
+
 func UpsertSecret(secret entity.SecretStored) {
 	if secret.Name == selfName {
 		cmd := evaluate(secret.Value)
@@ -72,7 +91,8 @@ func UpsertSecret(secret entity.SecretStored) {
 	} else {
 		secrets.Store(secret.Name, secret)
 	}
-	go persist(secret)
+
+	secretQueue <- secret
 }
 
 func ReadSecret(key string) *entity.SecretStored {
