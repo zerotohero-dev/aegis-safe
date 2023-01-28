@@ -137,6 +137,7 @@ func saveSecretToDisk(secret entity.SecretStored, dataPath string) {
 	}()
 }
 
+// Only one goroutine accesses this function at any given time.
 func persist(secret entity.SecretStored) {
 	backupCount := env.SafeSecretBackupCount()
 
@@ -161,12 +162,14 @@ func persist(secret entity.SecretStored) {
 	}
 
 	newIndex := math.Mod(float64(index+1), float64(backupCount))
-	lastBackedUpIndex[secret.Name] = int(newIndex)
 
 	// Save a copy
 	dataPath = path.Join(
 		env.SafeDataPath(),
 		secret.Name+"-"+strconv.Itoa(int(newIndex))+"-"+".age",
 	)
+
 	saveSecretToDisk(secret, dataPath)
+
+	lastBackedUpIndex[secret.Name] = int(newIndex)
 }
