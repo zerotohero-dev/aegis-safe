@@ -184,6 +184,8 @@ github.com/zerotohero-dev/aegis v0.6.0 h1:o0nYgg9tvJ8qS3NRGFo5+gGmfZ4hHrdMIcMp7c
 github.com/zerotohero-dev/aegis v0.6.0/go.mod h1:aCmWwfC+ZvTjHA0Gi7KygiHcpLgHohhF87Ik+0VbX0c=
 github.com/zerotohero-dev/aegis-core v0.10.2 h1:tDNFFZNl3/yK9emA1SpFxeUqZ+GH+583aK7lQ5I2cY8=
 github.com/zerotohero-dev/aegis-core v0.10.2/go.mod h1:0zhADICaMfHfd3FZViDQ8EOpNmloRR0EzsdjqyLfK8s=
+github.com/zerotohero-dev/aegis-core v0.10.3 h1:EC4Gv2d5TQZZyBBSR6krpN12F8LY8fmH8Lg7H25cpvg=
+github.com/zerotohero-dev/aegis-core v0.10.3/go.mod h1:0zhADICaMfHfd3FZViDQ8EOpNmloRR0EzsdjqyLfK8s=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
