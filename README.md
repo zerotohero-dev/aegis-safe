@@ -5,8 +5,8 @@
 **Safe** (`aegis-safe`) is the part that does most of the dirty work:
 
 * It acts as the central in-memory secrets store.
-* **Sentinel** talks to **Safe** to register secrets.
-* **Sidecar** talks to **Safe** to get the secrets that the workload needs.
+* **Aegis Sentinel** talks to **Aegis Safe** to register secrets.
+* **Aegis Sidecar** talks to **Aegis Safe** to get the secrets that the workload needs.
 
 [Check out Aegis’ README][aegis-readme] for more information about the project,
 high level design, contributing guidelines, and code of conduct.
