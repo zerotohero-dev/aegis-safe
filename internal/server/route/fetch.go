@@ -11,6 +11,7 @@ package route
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zerotohero-dev/aegis-core/crypto"
 	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
@@ -23,8 +24,27 @@ import (
 )
 
 func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
+	correlationId, _ := crypto.RandomString(8)
+	if correlationId == "" {
+		correlationId = "CID"
+	}
+
+	j := JournalEntry{
+		CorrelationId: correlationId,
+		Entity:        nil,
+		Method:        r.Method,
+		Url:           r.RequestURI,
+		Svid:          svid,
+		Event:         AuditEventEnter,
+	}
+
+	audit(j)
+
 	// Only workloads can fetch.
 	if !validation.IsWorkload(svid) {
+		j.Event = AuditEventBadSvid
+		audit(j)
+
 		log.DebugLn("Fetch: bad svid", svid)
 
 		w.WriteHeader(http.StatusBadRequest)
@@ -40,6 +60,9 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		j.Event = AuditEventBrokenBody
+		audit(j)
+
 		w.WriteHeader(http.StatusBadRequest)
 
 		_, err := io.WriteString(w, "")
@@ -64,6 +87,9 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 	var sr reqres.SecretFetchRequest
 	err = json.Unmarshal(body, &sr)
 	if err != nil {
+		j.Event = AuditEventRequestTypeMismatch
+		audit(j)
+
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
@@ -72,11 +98,16 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 		return
 	}
 
+	j.Entity = sr
+
 	log.DebugLn("Fetch: prepared request")
 
 	tmp := strings.Replace(svid, env.WorkloadSvidPrefix(), "", 1)
 	parts := strings.Split(tmp, "/")
 	if len(parts) == 0 {
+		j.Event = AuditEventBadPeerSvid
+		audit(j)
+
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
@@ -90,6 +121,9 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	// If secret does not exist, send an empty response.
 	if secret == nil {
+		j.Event = AuditEventNoSecret
+		audit(j)
+
 		w.WriteHeader(http.StatusNotFound)
 		_, err := io.WriteString(w, "")
 		if err != nil {
@@ -107,6 +141,10 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 		Created: fmt.Sprintf("\"%s\"", secret.Created.Format(time.RFC3339)),
 		Updated: fmt.Sprintf("\"%s\"", secret.Updated.Format(time.RFC3339)),
 	}
+
+	j.Event = AuditEventOk
+	j.Entity = sfr
+	audit(j)
 
 	resp, err := json.Marshal(sfr)
 	if err != nil {

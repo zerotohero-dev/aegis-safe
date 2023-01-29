@@ -7,7 +7,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spiffe/go-spiffe/v2 v2.1.2
 	github.com/zerotohero-dev/aegis v0.6.0
-	github.com/zerotohero-dev/aegis-core v0.10.3
+	github.com/zerotohero-dev/aegis-core v0.11.1
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.1
 	k8s.io/client-go v0.26.1
