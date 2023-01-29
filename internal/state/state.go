@@ -52,9 +52,26 @@ func evaluate(data string) *AegisInternalCommand {
 var secretQueue = make(chan entity.SecretStored, env.SafeSecretBufferSize())
 
 func handleSecrets() {
+	errChan := make(chan error)
+
+	go func() {
+		// If the `persist` operation spews out an error, log it.
+		e := <-errChan
+		log.ErrorLn("handleSecrets: error persisting secret:", e.Error())
+	}()
+
 	for {
+		// Get a secret to be persisted to the disk.
 		secret := <-secretQueue
-		persist(secret)
+
+		// Persist the secret to disk.
+		//
+		// Each secret is persisted one at a time, with the order they
+		// come in.
+		//
+		// Do not call this function elsewhere.
+		// It is meant to be called inside this `handleSecrets` goroutine.
+		persist(secret, errChan)
 	}
 }
 
@@ -109,8 +126,8 @@ func ReadSecret(key string) *entity.SecretStored {
 		if stored == nil {
 			return nil
 		}
-		go persist(*stored)
 		secrets.Store(stored.Name, *stored)
+		secretQueue <- *stored
 		return stored
 	}
 

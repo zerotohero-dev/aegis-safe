@@ -21,6 +21,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func ageKeyPair() (string, string) {
@@ -94,17 +95,17 @@ func readFromDisk(key string) *entity.SecretStored {
 
 var lastBackedUpIndex = make(map[string]int)
 
-func saveSecretToDisk(secret entity.SecretStored, dataPath string) {
+func saveSecretToDisk(secret entity.SecretStored, dataPath string) error {
 	data, err := json.Marshal(secret)
 	if err != nil {
 		log.WarnLn("persist: failed to marshal secret", err.Error())
-		return
+		return err
 	}
 
 	file, err := os.Create(dataPath)
 	if err != nil {
 		log.WarnLn("persist: problem creating file", err.Error())
-		return
+		return err
 	}
 	defer func() {
 		err := file.Close()
@@ -117,6 +118,7 @@ func saveSecretToDisk(secret entity.SecretStored, dataPath string) {
 	recipient, err := age.ParseX25519Recipient(publicKey)
 	if err != nil {
 		log.WarnLn("Failed to parse public key", publicKey, err.Error())
+		return err
 	}
 
 	out := file
@@ -124,21 +126,26 @@ func saveSecretToDisk(secret entity.SecretStored, dataPath string) {
 	w, err := age.Encrypt(out, recipient)
 	if err != nil {
 		log.WarnLn("Failed to create encrypted file", err.Error())
+		return err
 	}
 
 	if _, err := io.WriteString(w, string(data)); err != nil {
 		log.FatalLn("Failed to write to encrypted file: %v", err.Error())
+		return err
 	}
+
 	defer func() {
 		err := w.Close()
 		if err != nil {
 			log.InfoLn("problem closing stream", err.Error())
 		}
 	}()
+
+	return nil
 }
 
 // Only one goroutine accesses this function at any given time.
-func persist(secret entity.SecretStored) {
+func persist(secret entity.SecretStored, errChan chan<- error) {
 	backupCount := env.SafeSecretBackupCount()
 
 	// Resetting the value also removes the secret file from the disk.
@@ -153,7 +160,16 @@ func persist(secret entity.SecretStored) {
 
 	// Save the secret
 	dataPath := path.Join(env.SafeDataPath(), secret.Name+".age")
-	saveSecretToDisk(secret, dataPath)
+
+	err := saveSecretToDisk(secret, dataPath)
+	if err != nil {
+		// Retry once more.
+		time.Sleep(500 * time.Millisecond)
+		err := saveSecretToDisk(secret, dataPath)
+		if err != nil {
+			errChan <- err
+		}
+	}
 
 	index, found := lastBackedUpIndex[secret.Name]
 	if !found {
@@ -169,7 +185,18 @@ func persist(secret entity.SecretStored) {
 		secret.Name+"-"+strconv.Itoa(int(newIndex))+"-"+".age",
 	)
 
-	saveSecretToDisk(secret, dataPath)
+	err = saveSecretToDisk(secret, dataPath)
+	if err != nil {
+		// Retry once more.
+		time.Sleep(500 * time.Millisecond)
+		err := saveSecretToDisk(secret, dataPath)
+		if err != nil {
+			errChan <- err
+			// Do not change lastBackedUpIndex
+			// since the backup was not successful.
+			return
+		}
+	}
 
 	lastBackedUpIndex[secret.Name] = int(newIndex)
 }
