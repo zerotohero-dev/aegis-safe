@@ -10,6 +10,7 @@ package route
 
 import (
 	"encoding/json"
+	"github.com/zerotohero-dev/aegis-core/crypto"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
 	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
@@ -20,11 +21,26 @@ import (
 )
 
 func Secret(w http.ResponseWriter, r *http.Request, svid string) {
-	if r == nil {
-		return
+	correlationId, _ := crypto.RandomString(8)
+	if correlationId == "" {
+		correlationId = "CID"
 	}
 
+	j := JournalEntry{
+		CorrelationId: correlationId,
+		Entity:        nil,
+		Method:        r.Method,
+		Url:           r.RequestURI,
+		Svid:          svid,
+		Event:         AuditEventEnter,
+	}
+
+	audit(j)
+
 	if !validation.IsSentinel(svid) {
+		j.Event = AuditEventBadSvid
+		audit(j)
+
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
@@ -37,6 +53,9 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		j.Event = AuditEventBrokenBody
+		audit(j)
+
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
@@ -59,6 +78,8 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 	var sr reqres.SecretUpsertRequest
 	err = json.Unmarshal(body, &sr)
 	if err != nil {
+		j.Event = AuditEventRequestTypeMismatch
+		audit(j)
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
@@ -67,15 +88,28 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		return
 	}
 
+	j.Entity = sr
+
 	workloadId := sr.WorkloadId
 	value := sr.Value
 
 	log.DebugLn("Secret:Upsert: workloadId:", workloadId)
+
+	if workloadId == "" {
+		j.Event = AuditEventNoWorkloadId
+		audit(j)
+
+		return
+	}
+
 	state.UpsertSecret(entity.SecretStored{
 		Name:  workloadId,
 		Value: value,
 	})
 	log.DebugLn("Secret:UpsertEnd: workloadId", workloadId)
+
+	j.Event = AuditEventOk
+	audit(j)
 
 	_, err = io.WriteString(w, "OK")
 	if err != nil {
