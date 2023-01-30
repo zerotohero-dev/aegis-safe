@@ -9,7 +9,7 @@
 VERSION=0.11.0
 PACKAGE=aegis-safe
 REPO=z2hdev/aegis-safe
-REPO_LOCAL="$(minikube ip):5000/aegis-safe"
+REPO_LOCAL="$(shell minikube ip):5000/aegis-safe"
 
 all: build bundle push deploy
 
