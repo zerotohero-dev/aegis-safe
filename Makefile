@@ -6,10 +6,10 @@
 #     .\_/.
 #
 
-VERSION=0.11.0
+VERSION=0.11.3
 PACKAGE=aegis-safe
 REPO=z2hdev/aegis-safe
-REPO_LOCAL="$(shell minikube ip):5000/aegis-safe"
+REPO_LOCAL="localhost:5000/aegis-safe"
 
 all: build bundle push deploy
 
