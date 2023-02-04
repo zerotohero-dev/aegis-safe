@@ -16,6 +16,7 @@ all: build bundle push deploy
 all-local: build bundle push-local deploy-local
 
 build:
+	go mod vendor
 	go build -o ${PACKAGE} ./cmd/main.go
 
 run:
