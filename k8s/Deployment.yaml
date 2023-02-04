@@ -73,6 +73,8 @@ spec:
           value: "10"
         - name: AEGIS_SAFE_BACKING_STORE_TYPE
           value: "persistent"
+        - name: AEGIS_SAFE_SVID_RETRIEVAL_TIMEOUT
+          value: "30000"
         livenessProbe:
           httpGet:
             path: /
