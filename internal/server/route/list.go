@@ -10,7 +10,6 @@ package route
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/zerotohero-dev/aegis-core/crypto"
 	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
@@ -20,10 +19,9 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 )
 
-func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
+func List(w http.ResponseWriter, r *http.Request, svid string) {
 	correlationId, _ := crypto.RandomString(8)
 	if correlationId == "" {
 		correlationId = "CID"
@@ -40,23 +38,23 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	audit(j)
 
-	// Only workloads can fetch.
-	if !validation.IsWorkload(svid) {
+	// Only sentinel can list.
+	if !validation.IsSentinel(svid) {
 		j.Event = AuditEventBadSvid
 		audit(j)
 
-		log.DebugLn("Fetch: bad svid", svid)
+		log.DebugLn("List: bad svid", svid)
 
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.InfoLn("Fetch: Problem sending response", err.Error())
+			log.InfoLn("List: Problem sending response")
 		}
 
 		return
 	}
 
-	log.DebugLn("Fetch: sending response")
+	log.DebugLn("List: sending response")
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -67,24 +65,24 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.InfoLn("Fetch: Problem sending response", err.Error())
+			log.InfoLn("List: Problem sending response")
 		}
 
 		return
 	}
 
-	log.DebugLn("Fetch: sent response")
+	log.DebugLn("List: sent response")
 
 	defer func() {
 		err := r.Body.Close()
 		if err != nil {
-			log.InfoLn("Fetch: Problem closing body")
+			log.InfoLn("List: Problem closing body")
 		}
 	}()
 
-	log.DebugLn("Fetch: preparing request")
+	log.DebugLn("List: preparing request")
 
-	var sr reqres.SecretFetchRequest
+	var sr reqres.SecretListRequest
 	err = json.Unmarshal(body, &sr)
 	if err != nil {
 		j.Event = AuditEventRequestTypeMismatch
@@ -93,16 +91,16 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.InfoLn("Fetch: Problem sending response", err.Error())
+			log.InfoLn("List: Problem sending response")
 		}
 		return
 	}
 
 	j.Entity = sr
 
-	log.DebugLn("Fetch: prepared request")
+	log.DebugLn("List: prepared request")
 
-	tmp := strings.Replace(svid, env.WorkloadSvidPrefix(), "", 1)
+	tmp := strings.Replace(svid, env.SentinelSvidPrefix(), "", 1)
 	parts := strings.Split(tmp, "/")
 	if len(parts) == 0 {
 		j.Event = AuditEventBadPeerSvid
@@ -111,35 +109,20 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.InfoLn("Fetch: Problem with svid", svid)
+			log.InfoLn("List: Problem with svid", svid)
 		}
 		return
 	}
 
 	workloadId := parts[0]
-	secret := state.ReadSecret(workloadId)
+	secrets := state.AllSecrets()
 
-	// If secret does not exist, send an empty response.
-	if secret == nil {
-		j.Event = AuditEventNoSecret
-		audit(j)
-
-		w.WriteHeader(http.StatusNotFound)
-		_, err := io.WriteString(w, "")
-		if err != nil {
-			log.InfoLn("Fetch: Problem sending response", err.Error())
-		}
-		return
-	}
-
-	log.DebugLn("Fetch: will send. workload id:", workloadId)
+	log.DebugLn("List: will send. workload id:", workloadId)
 
 	// RFC3339 is what Go uses internally when marshaling dates.
 	// Choosing it to be consistent.
-	sfr := reqres.SecretFetchResponse{
-		Data:    secret.Value,
-		Created: fmt.Sprintf("\"%s\"", secret.Created.Format(time.RFC3339)),
-		Updated: fmt.Sprintf("\"%s\"", secret.Updated.Format(time.RFC3339)),
+	sfr := reqres.SecretListResponse{
+		Secrets: secrets,
 	}
 
 	j.Event = AuditEventOk
@@ -151,17 +134,17 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, err := io.WriteString(w, "Problem unmarshaling response")
 		if err != nil {
-			log.InfoLn("Fetch: Problem sending response", err.Error())
+			log.InfoLn("List: Problem sending response", err.Error())
 		}
 		return
 	}
 
-	log.DebugLn("Fetch: before response")
+	log.DebugLn("List: before response")
 
 	_, err = io.WriteString(w, string(resp))
 	if err != nil {
 		log.InfoLn("Problem sending response", err.Error())
 	}
 
-	log.DebugLn("Fetch: after response")
+	log.DebugLn("List: after response")
 }
