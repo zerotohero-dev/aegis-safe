@@ -54,24 +54,7 @@ func List(w http.ResponseWriter, r *http.Request, svid string) {
 		return
 	}
 
-	log.DebugLn("List: sending response")
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		j.Event = AuditEventBrokenBody
-		audit(j)
-
-		w.WriteHeader(http.StatusBadRequest)
-
-		_, err := io.WriteString(w, "")
-		if err != nil {
-			log.InfoLn("List: Problem sending response", err.Error())
-		}
-
-		return
-	}
-
-	log.DebugLn("List: sent response")
+	log.TraceLn("List: before defer")
 
 	defer func() {
 		err := r.Body.Close()
@@ -80,25 +63,7 @@ func List(w http.ResponseWriter, r *http.Request, svid string) {
 		}
 	}()
 
-	log.DebugLn("List: preparing request")
-
-	var sr reqres.SecretListRequest
-	err = json.Unmarshal(body, &sr)
-	if err != nil {
-		j.Event = AuditEventRequestTypeMismatch
-		audit(j)
-
-		w.WriteHeader(http.StatusBadRequest)
-		_, err := io.WriteString(w, "")
-		if err != nil {
-			log.InfoLn("List: Problem sending response", err.Error())
-		}
-		return
-	}
-
-	j.Entity = sr
-
-	log.DebugLn("List: prepared request")
+	log.TraceLn("List: after defer")
 
 	tmp := strings.Replace(svid, env.SentinelSvidPrefix(), "", 1)
 	parts := strings.Split(tmp, "/")
