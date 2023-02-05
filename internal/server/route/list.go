@@ -91,7 +91,7 @@ func List(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.InfoLn("List: Problem sending response")
+			log.InfoLn("List: Problem sending response", err.Error())
 		}
 		return
 	}
