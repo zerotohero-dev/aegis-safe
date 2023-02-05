@@ -51,22 +51,31 @@ func InitializeRoutes() {
 
 		log.DebugLn("Handler: got svid:", sid, "path", p, "method", r.Method)
 
-		// Route to fetch secrets.
-		// Only an Aegis-nominated workload is allowed to
-		// call this API endpoint. Calling it from anywhere else will
-		// error out.
-		if r.Method == http.MethodPost && p == "/v1/fetch" {
-			log.DebugLn("Handler: will fetch")
-			route.Fetch(w, r, sid)
+		// Route to list secrets.
+		// Only Aegis Sentinel is allowed to call this API endpoint.
+		// Calling it from anywhere else will error out.
+		if r.Method == http.MethodGet && p == "/sentinel/v1/secrets" {
+			log.DebugLn("Handler: will list")
+			route.List(w, r, sid)
 			return
 		}
 
 		// Route to add secrets to Aegis Safe.
 		// Only Aegis Sentinel is allowed to call this API endpoint.
 		// Calling it from anywhere else will error out.
-		if r.Method == http.MethodPost && p == "/v1/secret" {
+		if r.Method == http.MethodPost && p == "/sentinel/v1/secrets" {
 			log.DebugLn("Handler: will secret")
 			route.Secret(w, r, sid)
+			return
+		}
+
+		// Route to fetch secrets.
+		// Only an Aegis-nominated workload is allowed to
+		// call this API endpoint. Calling it from anywhere else will
+		// error out.
+		if r.Method == http.MethodGet && p == "/workload/v1/secrets" {
+			log.DebugLn("Handler: will fetch")
+			route.Fetch(w, r, sid)
 			return
 		}
 
@@ -75,7 +84,7 @@ func InitializeRoutes() {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err = io.WriteString(w, "")
 		if err != nil {
-			log.WarnLn("Problem writing response")
+			log.WarnLn("Problem writing response", err.Error())
 			return
 		}
 	})

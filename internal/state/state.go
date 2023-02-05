@@ -83,6 +83,25 @@ type StoreType string
 
 var Persistent StoreType = "persistent"
 
+func AllSecrets() []entity.Secret {
+	var result []entity.Secret
+	secrets.Range(func(key any, value any) bool {
+		v := value.(entity.SecretStored)
+
+		result = append(result, entity.Secret{
+			Name:    v.Name,
+			Created: entity.JsonTime(v.Created),
+			Updated: entity.JsonTime(v.Updated),
+		})
+
+		return true
+	})
+	if result == nil {
+		return []entity.Secret{}
+	}
+	return result
+}
+
 func UpsertSecret(secret entity.SecretStored) {
 	if secret.Name == selfName {
 		cmd := evaluate(secret.Value)

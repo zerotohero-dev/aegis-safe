@@ -44,7 +44,7 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.InfoLn("Problem sending response")
+			log.InfoLn("Problem sending response", err.Error())
 		}
 		return
 	}
@@ -59,7 +59,7 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.InfoLn("Secret: Problem sending response")
+			log.InfoLn("Secret: Problem sending response", err.Error())
 		}
 		return
 	}
@@ -69,7 +69,7 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		}
 		err := b.Close()
 		if err != nil {
-			log.InfoLn("Secret: Problem closing body")
+			log.InfoLn("Secret: Problem closing body", err.Error())
 		}
 	}(r.Body)
 
@@ -83,7 +83,7 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
-			log.InfoLn("Secret: Problem sending response")
+			log.InfoLn("Secret: Problem sending response", err.Error())
 		}
 		return
 	}
@@ -113,6 +113,6 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 
 	_, err = io.WriteString(w, "OK")
 	if err != nil {
-		log.InfoLn("Secret: Problem sending response")
+		log.InfoLn("Secret: Problem sending response", err.Error())
 	}
 }
