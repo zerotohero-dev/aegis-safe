@@ -58,23 +58,6 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	log.DebugLn("Fetch: sending response")
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		j.Event = AuditEventBrokenBody
-		audit(j)
-
-		w.WriteHeader(http.StatusBadRequest)
-
-		_, err := io.WriteString(w, "")
-		if err != nil {
-			log.InfoLn("Fetch: Problem sending response", err.Error())
-		}
-
-		return
-	}
-
-	log.DebugLn("Fetch: sent response")
-
 	defer func() {
 		err := r.Body.Close()
 		if err != nil {
@@ -83,24 +66,6 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 	}()
 
 	log.DebugLn("Fetch: preparing request")
-
-	var sr reqres.SecretFetchRequest
-	err = json.Unmarshal(body, &sr)
-	if err != nil {
-		j.Event = AuditEventRequestTypeMismatch
-		audit(j)
-
-		w.WriteHeader(http.StatusBadRequest)
-		_, err := io.WriteString(w, "")
-		if err != nil {
-			log.InfoLn("Fetch: Problem sending response", err.Error())
-		}
-		return
-	}
-
-	j.Entity = sr
-
-	log.DebugLn("Fetch: prepared request")
 
 	tmp := strings.Replace(svid, env.WorkloadSvidPrefix(), "", 1)
 	parts := strings.Split(tmp, "/")
@@ -118,6 +83,8 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	workloadId := parts[0]
 	secret := state.ReadSecret(workloadId)
+
+	log.TraceLn("Fetch: workloadId", workloadId)
 
 	// If secret does not exist, send an empty response.
 	if secret == nil {
