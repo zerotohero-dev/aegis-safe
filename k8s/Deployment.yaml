@@ -13,11 +13,13 @@ metadata:
   namespace: aegis-system
   labels:
     app.kubernetes.io/name: aegis-safe
+    app.kubernetes.io/part-of: aegis-system
 spec:
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: aegis-safe
+      app.kubernetes.io/part-of: aegis-system
   template:
     metadata:
       labels:

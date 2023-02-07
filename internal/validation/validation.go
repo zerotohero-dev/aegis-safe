@@ -11,7 +11,7 @@ package validation
 import (
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"github.com/zerotohero-dev/aegis-core/log"
-	"github.com/zerotohero-dev/aegis/core/validation"
+	"github.com/zerotohero-dev/aegis-core/validation"
 )
 
 func EnsureSelfSPIFFEID(source *workloadapi.X509Source) {

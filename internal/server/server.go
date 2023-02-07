@@ -42,7 +42,7 @@ func Serve(source *workloadapi.X509Source, serverStarted chan<- bool) {
 
 	tlsConfig := tlsconfig.MTLSServerConfig(source, source, authorizer)
 	server := &http.Server{
-		Addr:      env.SafeTlsPort(),
+		Addr:      env.TlsPort(),
 		TLSConfig: tlsConfig,
 	}
 

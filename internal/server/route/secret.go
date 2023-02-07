@@ -12,10 +12,10 @@ import (
 	"encoding/json"
 	"github.com/zerotohero-dev/aegis-core/crypto"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
+	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/v1"
 	"github.com/zerotohero-dev/aegis-core/log"
+	"github.com/zerotohero-dev/aegis-core/validation"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
-	reqres "github.com/zerotohero-dev/aegis/core/entity/reqres/v1"
-	"github.com/zerotohero-dev/aegis/core/validation"
 	"io"
 	"net/http"
 )
