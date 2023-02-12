@@ -95,9 +95,11 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 
 	backingStore := sr.BackingStore
 	useK8s := sr.UseKubernetes
+	namespace := sr.Namespace
 
 	log.DebugLn("Secret:Upsert: ",
 		"workloadId:", workloadId,
+		"namespace:", namespace,
 		"backingStore:", backingStore,
 		"useK8s", useK8s)
 
@@ -112,6 +114,7 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		Name: workloadId,
 		Meta: entity.SecretMeta{
 			UseKubernetesSecret: useK8s,
+			Namespace:           namespace,
 			BackingStore:        backingStore,
 		},
 		Value: value,
