@@ -180,10 +180,8 @@ github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/zeebo/errs v1.3.0 h1:hmiaKqgYZzcVgRL1Vkc1Mn2914BbzB0IBxs+ebeutGs=
 github.com/zeebo/errs v1.3.0/go.mod h1:sgbWHsvVuTPHcqJJGQ1WhI5KbWlHYz+2+2C/LSEtCw4=
-github.com/zerotohero-dev/aegis-core v0.12.31 h1:FSK3kinAhD/JOHN9onbhdX808xtizt4FJ77afMrsXis=
-github.com/zerotohero-dev/aegis-core v0.12.31/go.mod h1:GNaDQwJv/qoFk/iTLyi0lq81ztW3kWd4YCJlyhFzaV0=
-github.com/zerotohero-dev/aegis-core v0.12.37 h1:EBeMYAJeNx3bQ1ZrXmdXS+hLusdXJv3axU5Twq8uRvo=
-github.com/zerotohero-dev/aegis-core v0.12.37/go.mod h1:GNaDQwJv/qoFk/iTLyi0lq81ztW3kWd4YCJlyhFzaV0=
+github.com/zerotohero-dev/aegis-core v0.12.39 h1:j7s7iuG8yxfHE+vAm26UiBizw4UF0I8DccyMB653kG0=
+github.com/zerotohero-dev/aegis-core v0.12.39/go.mod h1:GNaDQwJv/qoFk/iTLyi0lq81ztW3kWd4YCJlyhFzaV0=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
