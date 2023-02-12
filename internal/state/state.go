@@ -51,6 +51,9 @@ func evaluate(data string) *AegisInternalCommand {
 // feels like an overkill.
 var secretQueue = make(chan entity.SecretStored, env.SafeSecretBufferSize())
 
+// The secrets put here are synced with their Kubernetes Secret counterparts.
+var k8sSecretQueue = make(chan entity.SecretStored, env.SafeSecretBufferSize())
+
 func handleSecrets() {
 	errChan := make(chan error)
 
@@ -75,8 +78,33 @@ func handleSecrets() {
 	}
 }
 
+func handleK8sSecrets() {
+	errChan := make(chan error)
+
+	go func() {
+		// If the `persistK8s` operation spews out an error, log it.
+		e := <-errChan
+		log.ErrorLn("handleSecrets: error persisting secret:", e.Error())
+	}()
+
+	for {
+		// Get a secret to be persisted to the disk.
+		secret := <-k8sSecretQueue
+
+		// Sync up the secret to etcd as a Kubernetes Secret.
+		//
+		// Each secret is synced one at a time, with the order they
+		// come in.
+		//
+		// Do not call this function elsewhere.
+		// It is meant to be called inside this `handleK8sSecrets` goroutine.
+		persistK8s(secret, errChan)
+	}
+}
+
 func init() {
 	go handleSecrets()
+	go handleK8sSecrets()
 }
 
 type StoreType string
@@ -132,9 +160,18 @@ func UpsertSecret(secret entity.SecretStored) {
 		secrets.Store(secret.Name, secret)
 	}
 
-	store := env.SafeBackingStoreType()
-	if store == string(Persistent) {
+	store := secret.Meta.BackingStore
+
+	switch store {
+	case entity.File:
 		secretQueue <- secret
+	case entity.Cluster:
+		panic("Cluster backing store not implemented yet!")
+	}
+
+	useK8sSecrets := secret.Meta.UseKubernetesSecret
+	if useK8sSecrets {
+		k8sSecretQueue <- secret
 	}
 }
 

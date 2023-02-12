@@ -144,6 +144,36 @@ func saveSecretToDisk(secret entity.SecretStored, dataPath string) error {
 	return nil
 }
 
+func saveSecretToKubernetes(secret entity.SecretStored) error {
+	// TODO: implement me.
+
+	return nil
+}
+
+func persistK8s(secret entity.SecretStored, errChan chan<- error) {
+	// backupCount := env.SafeSecretBackupCount()
+
+	// Resetting the value also removes the secret file from the disk.
+	if secret.Value == "" {
+		// TODO: reset the Kubernetes secret to the default initial value.
+
+		return
+	}
+
+	// Save the secret
+	dataPath := path.Join(env.SafeDataPath(), secret.Name+".age")
+
+	err := saveSecretToKubernetes(secret)
+	if err != nil {
+		// Retry once more.
+		time.Sleep(500 * time.Millisecond)
+		err := saveSecretToKubernetes(secret)
+		if err != nil {
+			errChan <- err
+		}
+	}
+}
+
 // Only one goroutine accesses this function at any given time.
 func persist(secret entity.SecretStored, errChan chan<- error) {
 	backupCount := env.SafeSecretBackupCount()

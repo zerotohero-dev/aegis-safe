@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zerotohero-dev/aegis-core/crypto"
-	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/v1"
+	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/safe/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-core/validation"

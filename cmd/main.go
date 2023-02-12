@@ -26,8 +26,6 @@ func main() {
 	updatedSecret := make(chan bool, 1)
 	serverStarted := make(chan bool, 1)
 
-	log.InfoLn(updatedSecret)
-
 	go bootstrap.NotifyTimeout(timedOut)
 	go bootstrap.CreateCryptoKey(updatedSecret)
 	go bootstrap.Monitor(acquiredSvid, updatedSecret, serverStarted, timedOut)

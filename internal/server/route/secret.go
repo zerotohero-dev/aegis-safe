@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"github.com/zerotohero-dev/aegis-core/crypto"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
-	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/v1"
+	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/safe/v1"
 	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-core/validation"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
@@ -93,7 +93,13 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 	workloadId := sr.WorkloadId
 	value := sr.Value
 
-	log.DebugLn("Secret:Upsert: workloadId:", workloadId)
+	backingStore := sr.BackingStore
+	useK8s := sr.UseKubernetes
+
+	log.DebugLn("Secret:Upsert: ",
+		"workloadId:", workloadId,
+		"backingStore:", backingStore,
+		"useK8s", useK8s)
 
 	if workloadId == "" {
 		j.Event = AuditEventNoWorkloadId
@@ -103,7 +109,11 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 	}
 
 	state.UpsertSecret(entity.SecretStored{
-		Name:  workloadId,
+		Name: workloadId,
+		Meta: entity.SecretMeta{
+			UseKubernetesSecret: useK8s,
+			BackingStore:        backingStore,
+		},
 		Value: value,
 	})
 	log.DebugLn("Secret:UpsertEnd: workloadId", workloadId)

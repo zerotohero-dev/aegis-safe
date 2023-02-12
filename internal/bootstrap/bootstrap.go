@@ -15,8 +15,8 @@ import (
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-core/probe"
+	"github.com/zerotohero-dev/aegis-core/validation"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
-	"github.com/zerotohero-dev/aegis-safe/internal/validation"
 	"os"
 	"time"
 )
@@ -73,7 +73,22 @@ func AcquireSource(
 		log.FatalLn("Unable to fetch X.509 Bundle: %v", err)
 	}
 
-	validation.EnsureSelfSPIFFEID(source)
+	if source == nil {
+		log.FatalLn("Could not find source")
+	}
+
+	svid, err := source.GetX509SVID()
+	if err != nil {
+		log.FatalLn("Unable to get X.509 SVID from source bundle:", err.Error())
+	}
+
+	svidId := svid.ID
+	if !validation.IsSafe(svid.ID.String()) {
+		log.FatalLn(
+			"Svid check: I don’t know you, and it’s crazy:", svidId.String(),
+		)
+	}
+
 	acquiredSvid <- true
 
 	return source
