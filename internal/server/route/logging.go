@@ -9,7 +9,7 @@
 package route
 
 import (
-	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/v1"
+	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/safe/v1"
 	"github.com/zerotohero-dev/aegis-core/log"
 )
 

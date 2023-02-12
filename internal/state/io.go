@@ -10,12 +10,18 @@ package state
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"filippo.io/age"
+	"github.com/pkg/errors"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
 	"io"
+	v1 "k8s.io/api/core/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"math"
 	"os"
 	"path"
@@ -142,6 +148,73 @@ func saveSecretToDisk(secret entity.SecretStored, dataPath string) error {
 	}()
 
 	return nil
+}
+
+const initialSecretValue = "{}"
+
+func saveSecretToKubernetes(secret entity.SecretStored) error {
+	// updates the Kubernetes Secret assuming it already exists.
+
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return errors.Wrap(err, "could not create client config")
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "could not create client")
+	}
+
+	data := make(map[string][]byte)
+	value := secret.Value
+	data["VALUE"] = ([]byte)(value)
+
+	// Update the Secret in the cluster
+	_, err = clientset.CoreV1().Secrets(secret.Meta.Namespace).Update(
+		context.Background(),
+		&v1.Secret{
+			TypeMeta: metaV1.TypeMeta{
+				Kind:       "Secret",
+				APIVersion: "v1",
+			},
+			ObjectMeta: metaV1.ObjectMeta{
+				Name:      "aegis-secret-" + secret.Name,
+				Namespace: secret.Meta.Namespace,
+			},
+			Data: data,
+		},
+		metaV1.UpdateOptions{
+			TypeMeta: metaV1.TypeMeta{
+				Kind:       "Secret",
+				APIVersion: "v1",
+			},
+		},
+	)
+
+	if err != nil {
+		return errors.Wrap(err, "error updating the secret")
+	}
+
+	log.InfoLn("Created the secret.")
+	return nil
+}
+
+func persistK8s(secret entity.SecretStored, errChan chan<- error) {
+	// If the secret is empty, reset the corresponding Kubernetes Secret
+	// to the initial secret value.
+	if secret.Value == "" {
+		secret.Value = initialSecretValue
+	}
+
+	err := saveSecretToKubernetes(secret)
+	if err != nil {
+		// Retry once more.
+		time.Sleep(500 * time.Millisecond)
+		err := saveSecretToKubernetes(secret)
+		if err != nil {
+			errChan <- err
+		}
+	}
 }
 
 // Only one goroutine accesses this function at any given time.
