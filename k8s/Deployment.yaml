@@ -29,7 +29,7 @@ spec:
       serviceAccountName: aegis-safe
       containers:
       - name: main
-        image: z2hdev/aegis-safe:0.12.30
+        image: z2hdev/aegis-safe:0.12.50
         ports:
         - containerPort: 8443
         volumeMounts:
@@ -54,7 +54,7 @@ spec:
         - name: SPIFFE_ENDPOINT_SOCKET
           value: "unix:///spire-agent-socket/agent.sock"
         - name: AEGIS_LOG_LEVEL
-          value: "3"
+          value: "6"
         - name: AEGIS_WORKLOAD_SVID_PREFIX
           value: "spiffe://aegis.z2h.dev/workload/"
         - name: AEGIS_SENTINEL_SVID_PREFIX
@@ -73,8 +73,10 @@ spec:
           value: ":8443"
         - name: AEGIS_SAFE_SECRET_BUFFER_SIZE
           value: "10"
-        - name: AEGIS_SAFE_BACKING_STORE_TYPE
-          value: "persistent"
+        - name: AEGIS_SAFE_BACKING_STORE
+          value: "file"
+        - name: AEGIS_SAFE_USE_KUBERNETES_SECRETS
+          value: "false"
         - name: AEGIS_SAFE_SVID_RETRIEVAL_TIMEOUT
           value: "30000"
         livenessProbe:

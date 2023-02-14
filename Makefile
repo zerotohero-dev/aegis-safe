@@ -6,10 +6,11 @@
 #     .\_/.
 #
 
-VERSION=0.12.30
+VERSION=0.12.50
 PACKAGE=aegis-safe
 REPO=z2hdev/aegis-safe
 REPO_LOCAL="localhost:5000/aegis-safe"
+# REPO_LOCAL="192.168.49.2:5000/aegis-safe"
 
 all: build bundle push deploy
 
