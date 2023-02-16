@@ -109,7 +109,7 @@ func init() {
 
 type StoreType string
 
-var Persistent StoreType = "persistent"
+// var Persistent StoreType = "persistent"
 
 func AllSecrets() []entity.Secret {
 	var result []entity.Secret
@@ -157,6 +157,13 @@ func UpsertSecret(secret entity.SecretStored) {
 	if secret.Value == "" {
 		secrets.Delete(secret.Name)
 	} else {
+		// TODO: update the transformed value.
+		// if secret.Meta.Template != "" {
+		//	val, err := template.Parse(secret)
+		//	if err != nil {
+		//		secret.Value = val
+		//	}
+		// }
 		secrets.Store(secret.Name, secret)
 	}
 
