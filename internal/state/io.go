@@ -195,17 +195,20 @@ func saveSecretToKubernetes(secret entity.SecretStored) error {
 		return errors.Wrap(err, "error updating the secret")
 	}
 
-	log.InfoLn("Created the secret.")
+	log.InfoLn("Updated the Kubernetes Secret.")
 	return nil
 }
 
 func persistK8s(secret entity.SecretStored, errChan chan<- error) {
+	log.TraceLn("Will persist k8s secret.")
+
 	// If the secret is empty, reset the corresponding Kubernetes Secret
 	// to the initial secret value.
 	if secret.Value == "" {
 		secret.Value = initialSecretValue
 	}
 
+	log.TraceLn("Will try saving secret to k8s.")
 	err := saveSecretToKubernetes(secret)
 	if err != nil {
 		// Retry once more.

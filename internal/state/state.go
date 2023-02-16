@@ -164,14 +164,18 @@ func UpsertSecret(secret entity.SecretStored) {
 
 	switch store {
 	case entity.File:
+		log.TraceLn("Will push secret.")
 		secretQueue <- secret
+		log.TraceLn("Pushed secret.")
 	case entity.Cluster:
 		panic("Cluster backing store not implemented yet!")
 	}
 
 	useK8sSecrets := secret.Meta.UseKubernetesSecret
 	if useK8sSecrets {
+		log.TraceLn("will push Kubernetes secret.")
 		k8sSecretQueue <- secret
+		log.TraceLn("pushed Kubernetes secret.")
 	}
 }
 

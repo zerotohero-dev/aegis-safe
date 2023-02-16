@@ -6,7 +6,7 @@
 #     .\_/.
 #
 
-VERSION=0.12.55
+VERSION=0.12.56
 PACKAGE=aegis-safe
 REPO=z2hdev/aegis-safe
 REPO_LOCAL="localhost:5000/aegis-safe"
