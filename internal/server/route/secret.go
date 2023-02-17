@@ -96,6 +96,9 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 	backingStore := sr.BackingStore
 	useK8s := sr.UseKubernetes
 	namespace := sr.Namespace
+	template := sr.Template
+	format := sr.Format
+	encrypt := sr.Encrypt
 
 	log.DebugLn("Secret:Upsert: ",
 		"workloadId:", workloadId,
@@ -116,6 +119,9 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 			UseKubernetesSecret: useK8s,
 			Namespace:           namespace,
 			BackingStore:        backingStore,
+			Template:            template,
+			Format:              format,
+			Encrypted:           encrypt,
 		},
 		Value: value,
 	})
