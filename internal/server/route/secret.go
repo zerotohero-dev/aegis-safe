@@ -104,6 +104,9 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		"workloadId:", workloadId,
 		"namespace:", namespace,
 		"backingStore:", backingStore,
+		"template:", template,
+		"format:", format,
+		"encrypt:", encrypt,
 		"useK8s", useK8s)
 
 	if workloadId == "" {
