@@ -101,6 +101,14 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	log.DebugLn("Fetch: will send. workload id:", workloadId)
 
+	// TODO: if the secret has a transformation, set `Data:` as the transformed secret value.
+	// if secret.Meta.Template != "" {
+	// 	val, err := parse(*secret)
+	//	if err != nil {
+	//		secret.Value = val
+	//	}
+	// }
+
 	// RFC3339 is what Go uses internally when marshaling dates.
 	// Choosing it to be consistent.
 	sfr := reqres.SecretFetchResponse{

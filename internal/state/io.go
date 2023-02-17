@@ -17,8 +17,9 @@ import (
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
+	"github.com/zerotohero-dev/aegis-safe/internal/template"
 	"io"
-	v1 "k8s.io/api/core/v1"
+	apiV1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -165,14 +166,35 @@ func saveSecretToKubernetes(secret entity.SecretStored) error {
 		return errors.Wrap(err, "could not create client")
 	}
 
+	// Transform the data if there is a transformation defined.
 	data := make(map[string][]byte)
-	value := secret.Value
-	data["VALUE"] = ([]byte)(value)
+	if secret.Meta.Template == "" {
+		err := json.Unmarshal(([]byte)(secret.Value), &data)
+		if err != nil {
+			value := secret.Value
+			data["VALUE"] = ([]byte)(value)
+		}
+		// Otherwise, assume an identity transformation.
+	} else {
+		newData, err := template.Parse(secret)
+		if err == nil {
+			data = make(map[string][]byte)
+			for k, v := range newData {
+				data[k] = ([]byte)(v)
+			}
+		} else {
+			err := json.Unmarshal(([]byte)(secret.Value), &data)
+			if err != nil {
+				value := secret.Value
+				data["VALUE"] = ([]byte)(value)
+			}
+		}
+	}
 
 	// Update the Secret in the cluster
 	_, err = clientset.CoreV1().Secrets(secret.Meta.Namespace).Update(
 		context.Background(),
-		&v1.Secret{
+		&apiV1.Secret{
 			TypeMeta: metaV1.TypeMeta{
 				Kind:       "Secret",
 				APIVersion: "v1",
