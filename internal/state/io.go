@@ -197,7 +197,7 @@ func saveSecretToKubernetes(secret entity.SecretStored) error {
 		&apiV1.Secret{
 			TypeMeta: metaV1.TypeMeta{
 				Kind:       "Secret",
-				APIVersion: "apiV1",
+				APIVersion: "v1",
 			},
 			ObjectMeta: metaV1.ObjectMeta{
 				Name:      "aegis-secret-" + secret.Name,
@@ -208,7 +208,7 @@ func saveSecretToKubernetes(secret entity.SecretStored) error {
 		metaV1.UpdateOptions{
 			TypeMeta: metaV1.TypeMeta{
 				Kind:       "Secret",
-				APIVersion: "apiV1",
+				APIVersion: "v1",
 			},
 		},
 	)
