@@ -232,11 +232,16 @@ func persistK8s(secret entity.SecretStored, errChan chan<- error) {
 
 	log.TraceLn("Will try saving secret to k8s.")
 	err := saveSecretToKubernetes(secret)
+	log.TraceLn("should have saved secret to k8s.")
 	if err != nil {
+		log.TraceLn("Got error while trying to save, will retry.")
 		// Retry once more.
 		time.Sleep(500 * time.Millisecond)
+		log.TraceLn("Retrying saving secret to k8s.")
 		err := saveSecretToKubernetes(secret)
+		log.TraceLn("Should have saved secret.")
 		if err != nil {
+			log.TraceLn("still error, pushing the error to errchan")
 			errChan <- err
 		}
 	}

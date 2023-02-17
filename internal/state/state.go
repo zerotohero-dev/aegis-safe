@@ -58,14 +58,17 @@ func handleSecrets() {
 	errChan := make(chan error)
 
 	go func() {
-		// If the `persist` operation spews out an error, log it.
-		e := <-errChan
-		log.ErrorLn("handleSecrets: error persisting secret:", e.Error())
+		for e := range errChan {
+			// If the `persist` operation spews out an error, log it.
+			log.ErrorLn("handleSecrets: error persisting secret:", e.Error())
+		}
 	}()
 
 	for {
 		// Get a secret to be persisted to the disk.
 		secret := <-secretQueue
+
+		log.TraceLn("picked a secret", len(secretQueue))
 
 		// Persist the secret to disk.
 		//
@@ -75,6 +78,8 @@ func handleSecrets() {
 		// Do not call this function elsewhere.
 		// It is meant to be called inside this `handleSecrets` goroutine.
 		persist(secret, errChan)
+
+		log.TraceLn("should have persisted the secret.")
 	}
 }
 
@@ -82,14 +87,17 @@ func handleK8sSecrets() {
 	errChan := make(chan error)
 
 	go func() {
-		// If the `persistK8s` operation spews out an error, log it.
-		e := <-errChan
-		log.ErrorLn("handleSecrets: error persisting secret:", e.Error())
+		for e := range errChan {
+			// If the `persistK8s` operation spews out an error, log it.
+			log.ErrorLn("handleK8sSecrets: error persisting secret:", e.Error())
+		}
 	}()
 
 	for {
 		// Get a secret to be persisted to the disk.
 		secret := <-k8sSecretQueue
+
+		log.TraceLn("picked k8s secret")
 
 		// Sync up the secret to etcd as a Kubernetes Secret.
 		//
@@ -99,6 +107,8 @@ func handleK8sSecrets() {
 		// Do not call this function elsewhere.
 		// It is meant to be called inside this `handleK8sSecrets` goroutine.
 		persistK8s(secret, errChan)
+
+		log.TraceLn("Should have persisted k8s secret")
 	}
 }
 
@@ -171,18 +181,18 @@ func UpsertSecret(secret entity.SecretStored) {
 
 	switch store {
 	case entity.File:
-		log.TraceLn("Will push secret.")
+		log.TraceLn("Will push secret. len", len(secretQueue), "cap", cap(secretQueue))
 		secretQueue <- secret
-		log.TraceLn("Pushed secret.")
+		log.TraceLn("Pushed secret. len", len(secretQueue), "cap", cap(secretQueue))
 	case entity.Cluster:
 		panic("Cluster backing store not implemented yet!")
 	}
 
 	useK8sSecrets := secret.Meta.UseKubernetesSecret
 	if useK8sSecrets {
-		log.TraceLn("will push Kubernetes secret.")
+		log.TraceLn("will push Kubernetes secret. len", len(k8sSecretQueue), "cap", cap(k8sSecretQueue))
 		k8sSecretQueue <- secret
-		log.TraceLn("pushed Kubernetes secret.")
+		log.TraceLn("pushed Kubernetes secret. len", len(k8sSecretQueue), "cap", cap(k8sSecretQueue))
 	}
 }
 
