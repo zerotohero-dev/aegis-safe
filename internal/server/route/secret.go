@@ -100,6 +100,10 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 	format := sr.Format
 	encrypt := sr.Encrypt
 
+	if namespace == "" {
+		namespace = "default"
+	}
+
 	log.DebugLn("Secret:Upsert: ",
 		"workloadId:", workloadId,
 		"namespace:", namespace,
