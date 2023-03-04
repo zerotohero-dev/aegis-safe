@@ -35,6 +35,21 @@ func jsonToYaml(js string) (string, error) {
 	return string(yamlBytes), nil
 }
 
+func tryParse(tmpStr, json string) string {
+	tmpl, err := template.New("secret").Parse(tmpStr)
+	if err != nil {
+		return json
+	}
+
+	var tpl bytes.Buffer
+	err = tmpl.Execute(&tpl, json)
+	if err != nil {
+		return json
+	}
+
+	return tpl.String()
+}
+
 func Parse(secret data.SecretStored) (string, error) {
 	jsonData := strings.TrimSpace(secret.Value)
 	tmpStr := strings.TrimSpace(secret.Meta.Template)
@@ -43,18 +58,7 @@ func Parse(secret data.SecretStored) (string, error) {
 		return jsonData, nil
 	}
 
-	tmpl, err := template.New("secret").Parse(tmpStr)
-	if err != nil {
-		return jsonData, err
-	}
-
-	var tpl bytes.Buffer
-	err = tmpl.Execute(&tpl, jsonData)
-	if err != nil {
-		return jsonData, err
-	}
-
-	parsedString := tpl.String()
+	parsedString := tryParse(tmpStr, jsonData)
 
 	switch secret.Meta.Format {
 	case data.None:
