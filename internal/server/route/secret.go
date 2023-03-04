@@ -128,7 +128,6 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 			BackingStore:        backingStore,
 			Template:            template,
 			Format:              format,
-			Encrypted:           encrypt,
 		},
 		Value: value,
 	})
