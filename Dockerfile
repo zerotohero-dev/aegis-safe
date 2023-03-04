@@ -20,8 +20,17 @@ WORKDIR /build
 RUN CGO_ENABLED=0 GOOS=linux go build -mod vendor -a -o aegis-safe ./cmd/main.go
 
 # generate clean, final image for end users
-# FROM alpine:3.17
 FROM gcr.io/distroless/static-debian11
+
+LABEL "maintainers"="Volkan Özçelik <volkan@aegis.ist>"
+LABEL "version"="1.3.0"
+LABEL "website"="https://aegis.ist/"
+LABEL "repo"="https://github.com/zerotohero-dev/aegis-safe"
+LABEL "documentation"="https://aegis.ist/docs/"
+LABEL "contact"="https://aegis.ist/contact/"
+LABEL "community"="https://aegis.ist/contact/#community"
+LABEL "changelog"="https://aegis.ist/changelog"
+
 COPY --from=builder /build/aegis-safe .
 
 # executable
