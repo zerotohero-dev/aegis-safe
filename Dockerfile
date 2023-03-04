@@ -6,8 +6,6 @@
 #     .\_/.
 #
 
-MAINTAINER Volkan Özçelik <volkan@aegis.ist>
-
 # builder image
 FROM golang:1.20.1-alpine3.17 as builder
 
