@@ -170,8 +170,7 @@ func UpsertSecret(secret entity.SecretStored) {
 	} else {
 		parsedStr, err := template.Parse(secret)
 		if err != nil {
-			log.InfoLn("Error parsing secret. Will not upsert. ", err.Error())
-			return
+			log.InfoLn("Error parsing secret. Will use fallback value.", err.Error())
 		}
 
 		secret.ValueTransformed = parsedStr
