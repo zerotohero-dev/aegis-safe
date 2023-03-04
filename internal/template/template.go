@@ -50,15 +50,33 @@ func tryParse(tmpStr, json string) string {
 	return tpl.String()
 }
 
+// Parse takes a data.SecretStored type as input and returns the parsed
+// string or an error.
+//
+// If the Meta.Template field is empty, it tries to parse secret.Value;
+// otherwise it transforms secret.Value using the Go template transformation
+// defined by Meta.Template.
+//
+// If the Meta.Format field is None, it returns the parsed string.
+//
+// If the Meta.Format field is Json, it returns the parsed string if it’s a
+// valid JSON or the original string otherwise.
+//
+// If the Meta.Format field is Yaml, it tries its best to transform the data
+// into Yaml. If it fails, it tries to return a valid JSON at least. If that
+// fails too, returns the original secret value.
+//
+// If the Meta.Format field is not recognized, it returns an empty string.
 func Parse(secret data.SecretStored) (string, error) {
 	jsonData := strings.TrimSpace(secret.Value)
 	tmpStr := strings.TrimSpace(secret.Meta.Template)
 
+	parsedString := ""
 	if tmpStr == "" {
-		return jsonData, nil
+		parsedString = jsonData
+	} else {
+		parsedString = tryParse(tmpStr, jsonData)
 	}
-
-	parsedString := tryParse(tmpStr, jsonData)
 
 	switch secret.Meta.Format {
 	case data.None:
@@ -73,11 +91,15 @@ func Parse(secret data.SecretStored) (string, error) {
 		if validJSON(parsedString) {
 			yml, err := jsonToYaml(parsedString)
 			if err != nil {
-				return "", err
+				return parsedString, err
 			}
 			return yml, nil
 		} else {
-			return "", nil
+			yml, err := jsonToYaml(jsonData)
+			if err != nil {
+				return jsonData, err
+			}
+			return yml, nil
 		}
 	}
 
