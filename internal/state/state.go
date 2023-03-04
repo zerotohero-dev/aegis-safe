@@ -13,6 +13,7 @@ import (
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
+	"github.com/zerotohero-dev/aegis-safe/internal/template"
 	"sync"
 	"time"
 )
@@ -167,13 +168,12 @@ func UpsertSecret(secret entity.SecretStored) {
 	if secret.Value == "" {
 		secrets.Delete(secret.Name)
 	} else {
-		// TODO: update the transformed value.
-		// if secret.Meta.Template != "" {
-		//	val, err := template.Parse(secret)
-		//	if err != nil {
-		//		secret.Value = val
-		//	}
-		// }
+		parsedStr, err := template.Parse(secret)
+		if err != nil {
+			log.InfoLn("Error parsing secret. Will use fallback value.", err.Error())
+		}
+
+		secret.ValueTransformed = parsedStr
 		secrets.Store(secret.Name, secret)
 	}
 

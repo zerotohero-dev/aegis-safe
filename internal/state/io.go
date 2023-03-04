@@ -153,6 +153,33 @@ func saveSecretToDisk(secret entity.SecretStored, dataPath string) error {
 
 const initialSecretValue = "{}"
 
+func transform(secret entity.SecretStored) map[string][]byte {
+	data := make(map[string][]byte)
+	if secret.Meta.Template == "" {
+		err := json.Unmarshal(([]byte)(secret.Value), &data)
+		if err != nil {
+			value := secret.Value
+			data["VALUE"] = ([]byte)(value)
+		}
+		// Otherwise, assume an identity transformation.
+	} else {
+		newData, err := template.ParseForK8sSecret(secret)
+		if err == nil {
+			data = make(map[string][]byte)
+			for k, v := range newData {
+				data[k] = ([]byte)(v)
+			}
+		} else {
+			err := json.Unmarshal(([]byte)(secret.Value), &data)
+			if err != nil {
+				value := secret.Value
+				data["VALUE"] = ([]byte)(value)
+			}
+		}
+	}
+	return data
+}
+
 func saveSecretToKubernetes(secret entity.SecretStored) error {
 	// updates the Kubernetes Secret assuming it already exists.
 
@@ -167,29 +194,7 @@ func saveSecretToKubernetes(secret entity.SecretStored) error {
 	}
 
 	// Transform the data if there is a transformation defined.
-	data := make(map[string][]byte)
-	if secret.Meta.Template == "" {
-		err := json.Unmarshal(([]byte)(secret.Value), &data)
-		if err != nil {
-			value := secret.Value
-			data["VALUE"] = ([]byte)(value)
-		}
-		// Otherwise, assume an identity transformation.
-	} else {
-		newData, err := template.Parse(secret)
-		if err == nil {
-			data = make(map[string][]byte)
-			for k, v := range newData {
-				data[k] = ([]byte)(v)
-			}
-		} else {
-			err := json.Unmarshal(([]byte)(secret.Value), &data)
-			if err != nil {
-				value := secret.Value
-				data["VALUE"] = ([]byte)(value)
-			}
-		}
-	}
+	data := transform(secret)
 
 	// Update the Secret in the cluster
 	_, err = clientset.CoreV1().Secrets(secret.Meta.Namespace).Update(
