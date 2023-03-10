@@ -10,6 +10,7 @@ package route
 
 import (
 	"encoding/json"
+	"github.com/zerotohero-dev/aegis-core/audit"
 	"github.com/zerotohero-dev/aegis-core/crypto"
 	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/safe/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
@@ -27,21 +28,21 @@ func List(w http.ResponseWriter, r *http.Request, svid string) {
 		correlationId = "CID"
 	}
 
-	j := JournalEntry{
+	j := audit.JournalEntry{
 		CorrelationId: correlationId,
 		Entity:        nil,
 		Method:        r.Method,
 		Url:           r.RequestURI,
 		Svid:          svid,
-		Event:         AuditEventEnter,
+		Event:         audit.EventEnter,
 	}
 
-	audit(j)
+	audit.Log(j)
 
 	// Only sentinel can list.
 	if !validation.IsSentinel(svid) {
-		j.Event = AuditEventBadSvid
-		audit(j)
+		j.Event = audit.EventBadSvid
+		audit.Log(j)
 
 		log.DebugLn("List: bad svid", svid)
 
@@ -68,8 +69,8 @@ func List(w http.ResponseWriter, r *http.Request, svid string) {
 	tmp := strings.Replace(svid, env.SentinelSvidPrefix(), "", 1)
 	parts := strings.Split(tmp, "/")
 	if len(parts) == 0 {
-		j.Event = AuditEventBadPeerSvid
-		audit(j)
+		j.Event = audit.EventBadPeerSvid
+		audit.Log(j)
 
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
@@ -90,9 +91,9 @@ func List(w http.ResponseWriter, r *http.Request, svid string) {
 		Secrets: secrets,
 	}
 
-	j.Event = AuditEventOk
+	j.Event = audit.EventOk
 	j.Entity = sfr
-	audit(j)
+	audit.Log(j)
 
 	resp, err := json.Marshal(sfr)
 	if err != nil {

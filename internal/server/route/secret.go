@@ -10,6 +10,7 @@ package route
 
 import (
 	"encoding/json"
+	"github.com/zerotohero-dev/aegis-core/audit"
 	"github.com/zerotohero-dev/aegis-core/crypto"
 	entity "github.com/zerotohero-dev/aegis-core/entity/data/v1"
 	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/safe/v1"
@@ -26,20 +27,20 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		correlationId = "CID"
 	}
 
-	j := JournalEntry{
+	j := audit.JournalEntry{
 		CorrelationId: correlationId,
 		Entity:        nil,
 		Method:        r.Method,
 		Url:           r.RequestURI,
 		Svid:          svid,
-		Event:         AuditEventEnter,
+		Event:         audit.EventEnter,
 	}
 
-	audit(j)
+	audit.Log(j)
 
 	if !validation.IsSentinel(svid) {
-		j.Event = AuditEventBadSvid
-		audit(j)
+		j.Event = audit.EventBadSvid
+		audit.Log(j)
 
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
@@ -53,8 +54,8 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		j.Event = AuditEventBrokenBody
-		audit(j)
+		j.Event = audit.EventBrokenBody
+		audit.Log(j)
 
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
@@ -78,8 +79,8 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 	var sr reqres.SecretUpsertRequest
 	err = json.Unmarshal(body, &sr)
 	if err != nil {
-		j.Event = AuditEventRequestTypeMismatch
-		audit(j)
+		j.Event = audit.EventRequestTypeMismatch
+		audit.Log(j)
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
 		if err != nil {
@@ -114,8 +115,8 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 		"useK8s", useK8s)
 
 	if workloadId == "" {
-		j.Event = AuditEventNoWorkloadId
-		audit(j)
+		j.Event = audit.EventNoWorkloadId
+		audit.Log(j)
 
 		return
 	}
@@ -133,8 +134,8 @@ func Secret(w http.ResponseWriter, r *http.Request, svid string) {
 	})
 	log.DebugLn("Secret:UpsertEnd: workloadId", workloadId)
 
-	j.Event = AuditEventOk
-	audit(j)
+	j.Event = audit.EventOk
+	audit.Log(j)
 
 	_, err = io.WriteString(w, "OK")
 	if err != nil {

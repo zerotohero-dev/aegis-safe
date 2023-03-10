@@ -11,6 +11,7 @@ package route
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zerotohero-dev/aegis-core/audit"
 	"github.com/zerotohero-dev/aegis-core/crypto"
 	reqres "github.com/zerotohero-dev/aegis-core/entity/reqres/safe/v1"
 	"github.com/zerotohero-dev/aegis-core/env"
@@ -29,21 +30,21 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 		correlationId = "CID"
 	}
 
-	j := JournalEntry{
+	j := audit.JournalEntry{
 		CorrelationId: correlationId,
 		Entity:        nil,
 		Method:        r.Method,
 		Url:           r.RequestURI,
 		Svid:          svid,
-		Event:         AuditEventEnter,
+		Event:         audit.EventEnter,
 	}
 
-	audit(j)
+	audit.Log(j)
 
 	// Only workloads can fetch.
 	if !validation.IsWorkload(svid) {
-		j.Event = AuditEventBadSvid
-		audit(j)
+		j.Event = audit.EventBadSvid
+		audit.Log(j)
 
 		log.DebugLn("Fetch: bad svid", svid)
 
@@ -70,8 +71,8 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 	tmp := strings.Replace(svid, env.WorkloadSvidPrefix(), "", 1)
 	parts := strings.Split(tmp, "/")
 	if len(parts) == 0 {
-		j.Event = AuditEventBadPeerSvid
-		audit(j)
+		j.Event = audit.EventBadPeerSvid
+		audit.Log(j)
 
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := io.WriteString(w, "")
@@ -88,8 +89,8 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 
 	// If secret does not exist, send an empty response.
 	if secret == nil {
-		j.Event = AuditEventNoSecret
-		audit(j)
+		j.Event = audit.EventNoSecret
+		audit.Log(j)
 
 		w.WriteHeader(http.StatusNotFound)
 		_, err := io.WriteString(w, "")
@@ -116,9 +117,9 @@ func Fetch(w http.ResponseWriter, r *http.Request, svid string) {
 		Updated: fmt.Sprintf("\"%s\"", secret.Updated.Format(time.RFC3339)),
 	}
 
-	j.Event = AuditEventOk
+	j.Event = audit.EventOk
 	j.Entity = sfr
-	audit(j)
+	audit.Log(j)
 
 	resp, err := json.Marshal(sfr)
 	if err != nil {
