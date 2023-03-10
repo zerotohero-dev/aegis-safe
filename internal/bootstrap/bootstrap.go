@@ -110,9 +110,7 @@ func CreateCryptoKey(updatedSecret chan<- bool) {
 
 	secret := string(data)
 
-	const uninitialized = "{}"
-
-	if secret != uninitialized {
+	if secret != state.InitialSecretValue {
 		log.InfoLn("Secret has been set in the cluster, will reuse it")
 		state.SetAgeKey(secret)
 		return
