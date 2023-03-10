@@ -118,12 +118,18 @@ func init() {
 	go handleK8sSecrets()
 }
 
-type StoreType string
-
-// var Persistent StoreType = "persistent"
-
 func AllSecrets() []entity.Secret {
 	var result []entity.Secret
+
+	panic("I am incomplete!")
+
+	// TODO:
+
+	// 1. check the file system and create a map of existing secrets on disk
+
+	// 2. for any secret that is on fs but not in memory, read the secret, then update memory
+
+	// 3. then run another range over memory as usual.
 	secrets.Range(func(key any, value any) bool {
 		v := value.(entity.SecretStored)
 
