@@ -14,6 +14,8 @@ import (
 	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/template"
+	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -98,7 +100,7 @@ func handleK8sSecrets() {
 		// Get a secret to be persisted to the disk.
 		secret := <-k8sSecretQueue
 
-		log.TraceLn("picked k8s secret")
+		log.TraceLn("handleK8sSecrets: picked k8s secret")
 
 		// Sync up the secret to etcd as a Kubernetes Secret.
 		//
@@ -109,7 +111,7 @@ func handleK8sSecrets() {
 		// It is meant to be called inside this `handleK8sSecrets` goroutine.
 		persistK8s(secret, errChan)
 
-		log.TraceLn("Should have persisted k8s secret")
+		log.TraceLn("handleK8sSecrets: Should have persisted k8s secret")
 	}
 }
 
@@ -118,18 +120,56 @@ func init() {
 	go handleK8sSecrets()
 }
 
+var secretsPopulated = false
+var secretsPopulatedLock = sync.Mutex{}
+
+func populateSecrets() {
+	secretsPopulatedLock.Lock()
+	defer secretsPopulatedLock.Unlock()
+
+	root := env.SafeDataPath()
+	files, err := os.ReadDir(root)
+	if err != nil {
+		log.InfoLn("populateSecrets problem:", err.Error())
+		return
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		fn := file.Name()
+		if strings.HasSuffix(fn, ".backup") {
+			continue
+		}
+
+		key := strings.Replace(fn, ".age", "", 1)
+
+		_, exists := secrets.Load(key)
+		if exists {
+			continue
+		}
+
+		secretOnDisk := readFromDisk(key)
+		secrets.Store(key, secretOnDisk)
+	}
+
+	secretsPopulated = true
+	log.InfoLn("populateSecrets: secrets populated.")
+}
+
 func AllSecrets() []entity.Secret {
 	var result []entity.Secret
 
-	panic("I am incomplete!")
+	// Check existing stored secrets files.
+	// If Aegis pod is evicted and revived, it will not have knowledge about
+	// the secret it has. This loop helps it re-populate its cache.
+	if !secretsPopulated {
+		populateSecrets()
+	}
 
-	// TODO:
-
-	// 1. check the file system and create a map of existing secrets on disk
-
-	// 2. for any secret that is on fs but not in memory, read the secret, then update memory
-
-	// 3. then run another range over memory as usual.
+	// Range over all existing secrets.
 	secrets.Range(func(key any, value any) bool {
 		v := value.(entity.SecretStored)
 
@@ -141,9 +181,11 @@ func AllSecrets() []entity.Secret {
 
 		return true
 	})
+
 	if result == nil {
 		return []entity.Secret{}
 	}
+
 	return result
 }
 
@@ -196,9 +238,15 @@ func UpsertSecret(secret entity.SecretStored) {
 
 	useK8sSecrets := secret.Meta.UseKubernetesSecret
 	if useK8sSecrets {
-		log.TraceLn("will push Kubernetes secret. len", len(k8sSecretQueue), "cap", cap(k8sSecretQueue))
+		log.TraceLn(
+			"will push Kubernetes secret. len", len(k8sSecretQueue),
+			"cap", cap(k8sSecretQueue),
+		)
 		k8sSecretQueue <- secret
-		log.TraceLn("pushed Kubernetes secret. len", len(k8sSecretQueue), "cap", cap(k8sSecretQueue))
+		log.TraceLn(
+			"pushed Kubernetes secret. len", len(k8sSecretQueue),
+			"cap", cap(k8sSecretQueue),
+		)
 	}
 }
 

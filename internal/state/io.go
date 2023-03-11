@@ -151,7 +151,8 @@ func saveSecretToDisk(secret entity.SecretStored, dataPath string) error {
 	return nil
 }
 
-const initialSecretValue = "{}"
+const InitialSecretValue = `{"empty":true}`
+const BlankAgeKeyValue = "{}"
 
 func transform(secret entity.SecretStored) map[string][]byte {
 	data := make(map[string][]byte)
@@ -229,10 +230,13 @@ func saveSecretToKubernetes(secret entity.SecretStored) error {
 func persistK8s(secret entity.SecretStored, errChan chan<- error) {
 	log.TraceLn("Will persist k8s secret.")
 
-	// If the secret is empty, reset the corresponding Kubernetes Secret
-	// to the initial secret value.
+	// Defensive coding:
+	// secret’s value is never empty because when the value is set to an
+	// empty secret, it is scheduled for deletion and not persisted to the
+	// file system or the cluster. However, it that happens, we would at least
+	// want an indicator that it happened.
 	if secret.Value == "" {
-		secret.Value = initialSecretValue
+		secret.Value = InitialSecretValue
 	}
 
 	log.TraceLn("Will try saving secret to k8s.")
@@ -290,7 +294,7 @@ func persist(secret entity.SecretStored, errChan chan<- error) {
 	// Save a copy
 	dataPath = path.Join(
 		env.SafeDataPath(),
-		secret.Name+"-"+strconv.Itoa(int(newIndex))+"-"+".age",
+		secret.Name+"-"+strconv.Itoa(int(newIndex))+"-"+".age.backup",
 	)
 
 	err = saveSecretToDisk(secret, dataPath)
