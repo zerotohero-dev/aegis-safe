@@ -10,6 +10,7 @@ package bootstrap
 
 import (
 	"context"
+	"github.com/zerotohero-dev/aegis-core/env"
 	"github.com/zerotohero-dev/aegis-core/log"
 	"github.com/zerotohero-dev/aegis-safe/internal/state"
 	v1 "k8s.io/api/core/v1"
@@ -42,7 +43,7 @@ func persistKeys(privateKey, publicKey string) {
 				APIVersion: "v1",
 			},
 			ObjectMeta: metaV1.ObjectMeta{
-				Name:      "safe-age-key",
+				Name:     env.SafeAgeKeySecretName(),
 				Namespace: "aegis-system",
 			},
 			Data: data,
