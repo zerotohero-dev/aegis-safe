@@ -206,7 +206,7 @@ func saveSecretToKubernetes(secret entity.SecretStored) error {
 				APIVersion: "v1",
 			},
 			ObjectMeta: metaV1.ObjectMeta{
-				Name:      "aegis-secret-" + secret.Name,
+				Name:      env.SafeSecretNamePrefix() + secret.Name,
 				Namespace: secret.Meta.Namespace,
 			},
 			Data: data,

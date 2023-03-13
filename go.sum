@@ -180,8 +180,8 @@ github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/zeebo/errs v1.3.0 h1:hmiaKqgYZzcVgRL1Vkc1Mn2914BbzB0IBxs+ebeutGs=
 github.com/zeebo/errs v1.3.0/go.mod h1:sgbWHsvVuTPHcqJJGQ1WhI5KbWlHYz+2+2C/LSEtCw4=
-github.com/zerotohero-dev/aegis-core v0.13.3 h1:O5rqycslt/gOFMLydCs32O9CmRj+swltp5s21v8IuXs=
-github.com/zerotohero-dev/aegis-core v0.13.3/go.mod h1:GNaDQwJv/qoFk/iTLyi0lq81ztW3kWd4YCJlyhFzaV0=
+github.com/zerotohero-dev/aegis-core v0.13.4 h1:z4hFrwN/LGJuBOCa9GieiJVGfMF7BV2U/Zl8bNtReM8=
+github.com/zerotohero-dev/aegis-core v0.13.4/go.mod h1:GNaDQwJv/qoFk/iTLyi0lq81ztW3kWd4YCJlyhFzaV0=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
